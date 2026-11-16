@@ -22,7 +22,7 @@ variable "route53_zone_id" {
 }
 
 variable "extra_cors_origins" {
-  description = "Extra origins allowed by API/photos CORS, e.g. [\"http://localhost:5173\"] for local dev"
+  description = "Extra origins allowed by API/photos CORS. Localhost is on by default so the team can run the frontend locally (CI has no terraform.tfvars)."
   type        = list(string)
-  default     = []
+  default     = ["http://localhost:5173"]
 }
