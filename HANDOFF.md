@@ -1,0 +1,118 @@
+# ReadCycle: передача команді
+
+Готова основа прототипу: сайт, вхід лише з пошти УКУ, API, база, фото-бакет і автодеплой. Функції книг, пошуку та відгуків додаються поверх. Деталі архітектури та рішень див. у [README.md](README.md).
+
+## Дані деплою
+
+Регіон `eu-central-1`, AWS-акаунт `274394226432`.
+
+| Що | Значення |
+|---|---|
+| Сайт (`site_url`) | https://d1my76p49bey2o.cloudfront.net |
+| API (`api_url`) | https://sp31m1fyue.execute-api.eu-central-1.amazonaws.com |
+| Cognito User Pool ID (`user_pool_id`) | `eu-central-1_KbY1FZtNp` |
+| Cognito Client ID (`user_pool_client_id`) | `1fqjgdcffur7hdn58tm1dh65ct` |
+| Дозволений домен пошти | `ucu.edu.ua` |
+
+Це не секрети: вони й так потрапляють у браузер (`/config.json` на сайті). Секретів у репозиторії немає.
+
+Ресурси в AWS (усі з префіксом `readcycle`):
+
+| Ресурс | Назва |
+|---|---|
+| DynamoDB-таблиця (ключі `pk`/`sk`) | `readcycle-main` |
+| S3-бакет для фото | `readcycle-photos-274394226432` |
+| S3-бакет сайту | `readcycle-site-274394226432` |
+| S3-бакет Terraform state | `readcycle-tfstate-274394226432` |
+| IAM-роль для CI | `arn:aws:iam::274394226432:role/readcycle-github-deploy` |
+
+## Як працює деплой
+
+Пуш у `main` запускає GitHub Actions (`.github/workflows/deploy.yml`):
+
+1. **test:** ruff, pytest, збірка фронту, `terraform validate`.
+2. **deploy:** `scripts/deploy.sh`: `terraform apply`, збірка фронту, генерація `config.json`, `aws s3 sync`, інвалідація CloudFront.
+
+Через 3–5 хвилин після пушу зміни на сайті. Ключів AWS у GitHub немає: CI бере роль через OIDC. Потрібні лише дві змінні репозиторію (**Settings → Secrets and variables → Actions → Variables**), вони вже додані:
+
+- `AWS_ROLE_ARN` = `arn:aws:iam::274394226432:role/readcycle-github-deploy`
+- `TF_STATE_BUCKET` = `readcycle-tfstate-274394226432`
+
+Роль може взяти лише workflow з гілки `main` цього репозиторію.
+
+## Швидкий старт для розробника
+
+Бекенд (тести й lint, AWS не потрібен):
+
+```bash
+cd backend
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+ruff check . && pytest
+```
+
+Фронт з розгорнутим API та Cognito:
+
+```bash
+cd frontend
+npm install
+```
+
+Створіть `frontend/public/config.json` (він у `.gitignore`):
+
+```json
+{
+  "apiUrl": "https://sp31m1fyue.execute-api.eu-central-1.amazonaws.com",
+  "userPoolId": "eu-central-1_KbY1FZtNp",
+  "userPoolClientId": "1fqjgdcffur7hdn58tm1dh65ct",
+  "allowedEmailDomain": "ucu.edu.ua"
+}
+```
+
+```bash
+npm run dev   # http://localhost:5173
+```
+
+API дозволяє CORS лише домену сайту. Щоб працювало з localhost, додайте в `infra/terraform.tfvars` рядок `extra_cors_origins = ["http://localhost:5173"]` і задеплойте.
+
+## Куди додавати функції
+
+| Що додати | Де |
+|---|---|
+| Новий endpoint | файл у `backend/src/handlers/` з `@api_handler def handler(event, context)` + рядок у `local.api_routes` в `infra/main.tf` + тест у `backend/tests/` |
+| Дані (книги тощо) | таблиця `readcycle-main`, змінна середовища `TABLE_NAME`, ключі `pk`/`sk` (наприклад `pk=BOOK#<id>`, `sk=META`) |
+| Фото книг | `common.storage.presigned_upload_url(key, content_type)`, браузер робить `PUT` напряму в S3 |
+| Нова сторінка | файл у `frontend/src/pages/` + маршрут в `frontend/src/App.jsx` у `<ProtectedRoute>` |
+| Запит до API з фронту | `api('/books')` з `frontend/src/api.js` (токен додається сам) |
+
+Формат помилок бекенду: `{"error": {"code": "...", "message": "..."}}`. Виняток: 401 від JWT authorizer API Gateway повертає `{"message":"Unauthorized"}`, фронт обробляє обидва формати.
+
+## Доступ до AWS
+
+Для роботи з кодом AWS-доступ не потрібен: тести локальні, а деплой робить CI. Доступ потрібен лише тому, хто керує інфраструктурою. Він видається через IAM Identity Center (SSO) в акаунті `274394226432`:
+
+1. Власниця акаунта створює користувача в Identity Center і призначає йому роль `AdministratorAccess` (або вужчу).
+2. Користувач налаштовує профіль:
+   ```bash
+   aws configure sso      # потрібен AWS CLI v2; session name: readcycle, region: eu-central-1
+   aws sso login --profile readcycle
+   export AWS_PROFILE=readcycle
+   ```
+3. Перевірка: `aws sts get-caller-identity` має показати `AWSReservedSSO_...`, а не root.
+
+Довгих ключів не створювати. Root-акаунт для роботи не використовувати.
+
+## Відомі обмеження прототипу
+
+- **Листи з кодом підтвердження** надсилає вбудований відправник Cognito: приблизно 50 листів на добу. Перед запуском для всіх студентів переключити на Amazon SES.
+- **Власний домен** не підключено (сайт на `*.cloudfront.net`). Щоб підключити: змінні `domain_name` та `route53_zone_id` в `infra/variables.tf`.
+- **Bootstrap-state** (`infra/bootstrap/terraform.tfstate`) лежить локально у того, хто його створював, і не в git. Змінювати bootstrap можна лише з того комп'ютера (або відновити через `terraform import`).
+- **Книг, пошуку та відгуків немає**: це наступний етап.
+
+## Перевірка після змін
+
+- [ ] Сайт відкривається по HTTPS.
+- [ ] Реєстрація з `@ucu.edu.ua` проходить, лист із кодом приходить.
+- [ ] Реєстрація з іншою поштою відхиляється з зрозумілим повідомленням.
+- [ ] `GET {api_url}/health` → 200.
+- [ ] `GET {api_url}/me` без токена → 401, з ID-токеном → 200 і email.
