@@ -1,43 +1,68 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { api } from '../api.js';
+import BookDetails from '../components/BookDetails.jsx';
 import { Cabinet, Shelf, chunk } from '../components/Bookshelf.jsx';
+import CatalogFilters from '../components/CatalogFilters.jsx';
+import Modal from '../components/Modal.jsx';
 
-// Main page. For now the oak cabinet shows sample books; on stage 5 it will be filled from the
-// API (all books of other students) and get the filter panel.
-const SAMPLE = [
-  ['Кобзар', 'Тарас Шевченко'],
-  ['Тіні забутих предків', 'Михайло Коцюбинський'],
-  ['Місто', 'Валер’ян Підмогильний'],
-  ['Хіба ревуть воли', 'Панас Мирний'],
-  ['Лісова пісня', 'Леся Українка'],
-  ['Захар Беркут', 'Іван Франко'],
-  ['Маруся Чурай', 'Ліна Костенко'],
-  ['Сад Гетсиманський', 'Іван Багряний'],
-  ['Солодка Даруся', 'Марія Матіос'],
-  ['Felix Austria', 'Софія Андрухович'],
-  ['Музей покинутих секретів', 'Оксана Забужко'],
-  ['Ворошиловград', 'Сергій Жадан'],
-  ['Jane Eyre', 'Charlotte Brontë'],
-  ['Pride and Prejudice', 'Jane Austen'],
-  ['Frankenstein', 'Mary Shelley'],
-  ['The Picture of Dorian Gray', 'Oscar Wilde'],
-  ['Les Misérables', 'Victor Hugo'],
-  ['Anna Karenina', 'Leo Tolstoy'],
-  ['Moby-Dick', 'Herman Melville'],
-  ['Wuthering Heights', 'Emily Brontë'],
-  ['The Great Gatsby', 'F. Scott Fitzgerald'],
-  ['Intermezzo', 'Михайло Коцюбинський'],
-  ['Записки українського самашедшого', 'Ліна Костенко'],
-  ['Інтернат', 'Сергій Жадан'],
-  ['Little Women', 'Louisa May Alcott'],
-  ['Dracula', 'Bram Stoker'],
-  ['Rebecca', 'Daphne du Maurier'],
-  ['Persuasion', 'Jane Austen'],
-  ['Emma', 'Jane Austen'],
-  ['Middlemarch', 'George Eliot'],
-  ['Лебедина зграя', 'Василь Земляк'],
-  ['Земля', 'Ольга Кобилянська'],
-].map(([title, author]) => ({ title, author }));
+const PER_SHELF = 20;
+const MIN_SHELVES = 3; // an almost empty cabinet still looks like a cabinet
+const KEYS = ['genre', 'language', 'offer'];
 
+// Main page: everyone else's books in a big oak cabinet, with filters.
+// The select filters live in the URL (?genre=fantasy&offer=give) so a view can be bookmarked;
+// the search text is local and debounced.
 export default function Home() {
+  const [params, setParams] = useSearchParams();
+  const filters = useMemo(
+    () => Object.fromEntries(KEYS.map((k) => [k, params.get(k) || ''])),
+    [params],
+  );
+  const [result, setResult] = useState(null); // { books, total }
+  const [error, setError] = useState('');
+  const [open, setOpen] = useState(null);
+
+  // Debounce typing in the search box; selects apply at once.
+  const [q, setQ] = useState('');
+  const [debouncedQ, setDebouncedQ] = useState('');
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQ(q.trim()), 300);
+    return () => clearTimeout(t);
+  }, [q]);
+
+  useEffect(() => {
+    const query = new URLSearchParams();
+    if (debouncedQ) query.set('q', debouncedQ);
+    for (const k of KEYS) if (filters[k]) query.set(k, filters[k]);
+    let cancelled = false;
+    setError('');
+    api(`/books${query.toString() ? `?${query}` : ''}`)
+      .then((r) => !cancelled && setResult(r))
+      .catch((e) => !cancelled && setError(e.message));
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedQ, filters]);
+
+  const onFilters = (next) => {
+    setQ(next.q);
+    const p = new URLSearchParams();
+    for (const k of KEYS) if (next[k]) p.set(k, next[k]);
+    setParams(p, { replace: true });
+  };
+
+  const books = result?.books || [];
+  const shelves = chunk(books, PER_SHELF);
+  while (shelves.length < MIN_SHELVES) shelves.push([]);
+  const filtered = KEYS.some((k) => filters[k]) || q;
+  const emptyText =
+    result === null
+      ? 'Відчиняємо шафу…'
+      : filtered
+        ? 'За цими фільтрами нічого не знайшлося'
+        : 'Шафа поки порожня. Будь першою — додай книги на свою полицю';
+
   return (
     <section>
       <div className="hero">
@@ -47,27 +72,50 @@ export default function Home() {
             Віддай прочитане — <span className="serif-italic">знайди своє</span>
           </h1>
           <p className="muted">
-            Склади полицю з книжок, які готова віддати чи обміняти, додай вішліст — і ReadCycle
-            підкаже, з ким вам варто помінятися.
+            Тут стоять книги, які інші студенти готові віддати чи обміняти. Натисни на корінець, щоб
+            роздивитися книгу ближче.
           </p>
         </div>
         <div className="card card--wine">
           <span className="eyebrow" style={{ color: 'var(--gold-soft)' }}>
-            Скоро
+            Твій хід
           </span>
-          <h2>Твоя полиця</h2>
-          <p>Профіль, власна бібліотека, вішліст і пошук обміну з’являться на наступних етапах.</p>
+          <h2>Постав свої книги на полицю</h2>
+          <p>Додай книги, які готова віддати, і заповни вішліст: так інші знайдуть тебе.</p>
+          <Link to="/profile" className="btn btn--cream" style={{ alignSelf: 'flex-start' }}>
+            До моєї полиці
+          </Link>
         </div>
       </div>
 
-      <span className="preview-ribbon">
-        Попередній перегляд: тут з’являться книги інших студентів
-      </span>
+      <CatalogFilters
+        value={{ ...filters, q }}
+        onChange={onFilters}
+        total={result ? result.total : null}
+      />
+      {error && <p className="error">Не вдалося завантажити каталог: {error}</p>}
+
       <Cabinet title="ReadCycle">
-        {chunk(SAMPLE, 17).map((row, i) => (
-          <Shelf key={i} books={row} />
+        {shelves.map((row, i) => (
+          <Shelf
+            key={i}
+            books={row}
+            empty={i === 0 ? emptyText : ''}
+            onBookClick={(book) => setOpen(book)}
+          />
         ))}
       </Cabinet>
+      {result && result.total > books.length && (
+        <p className="catalog-more">
+          Показано {books.length} з {result.total}. Уточни пошук, щоб знайти потрібне.
+        </p>
+      )}
+
+      {open && (
+        <Modal onClose={() => setOpen(null)} wide>
+          <BookDetails book={open} />
+        </Modal>
+      )}
     </section>
   );
 }

@@ -1132,6 +1132,90 @@ select {
   line-height: 1;
 }
 
+/* ---------------- catalog filters ---------------- */
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.filters {
+  position: sticky;
+  top: 80px;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 26px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--paper), rgba(246, 238, 223, 0.94);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--shadow-soft);
+}
+.filters select {
+  flex: 0 1 200px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+.filters__search {
+  position: relative;
+  flex: 1 1 240px;
+  display: block;
+}
+.filters__search svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--taupe-600);
+}
+.filters__search input {
+  width: 100%;
+  padding: 10px 14px 10px 42px;
+}
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--cream-200);
+}
+.segmented button {
+  padding: 8px 14px;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  box-shadow: none;
+}
+.segmented button:hover {
+  filter: none;
+  color: var(--wine-700);
+}
+.segmented button.on {
+  background: var(--wine-700);
+  color: var(--cream-50);
+}
+.filters__meta {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  margin-left: auto;
+  padding: 0 6px;
+  font-size: 0.82rem;
+  color: var(--taupe-600);
+}
+.catalog-more {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--cream-100);
+}
+
 /* =========================================================================
    Furniture
    ========================================================================= */

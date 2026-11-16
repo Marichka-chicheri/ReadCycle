@@ -22,7 +22,16 @@ class FakeTable:
         return {}
 
     def query(self, KeyConditionExpression, ExpressionAttributeValues, **kwargs):
-        # Supports the one pattern the repositories use: "pk = :pk AND begins_with(sk, :prefix)"
+        # Supports the two patterns the repositories use.
+        if kwargs.get("IndexName") == "gsi1":
+            assert KeyConditionExpression == "gsi1pk = :pk"
+            found = [
+                dict(i)
+                for i in self.items.values()
+                if i.get("gsi1pk") == ExpressionAttributeValues[":pk"]
+            ]
+            found.sort(key=lambda i: i["gsi1sk"], reverse=not kwargs.get("ScanIndexForward", True))
+            return {"Items": found}
         assert KeyConditionExpression == "pk = :pk AND begins_with(sk, :prefix)"
         pk, prefix = ExpressionAttributeValues[":pk"], ExpressionAttributeValues[":prefix"]
         found = [

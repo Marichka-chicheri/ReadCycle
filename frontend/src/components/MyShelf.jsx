@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
-import { genreLabel, languageLabel, offerLabel } from '../genres.js';
-import BookCover from './BookCover.jsx';
+import BookDetails from './BookDetails.jsx';
 import BookForm from './BookForm.jsx';
 import { Shelf, chunk } from './Bookshelf.jsx';
 import Modal from './Modal.jsx';
@@ -124,33 +123,14 @@ export default function MyShelf() {
 
       {dialog?.mode === 'view' && (
         <Modal onClose={close} wide>
-          <div className="book-view">
-            <BookCover title={dialog.book.title} author={dialog.book.author} />
-            <div className="book-view__info">
-              <span className={`offer-badge offer-badge--${dialog.book.offer}`}>
-                {offerLabel(dialog.book.offer)}
-              </span>
-              <h2>{dialog.book.title}</h2>
-              <p className="book-view__author">{dialog.book.author}</p>
-              <dl className="facts">
-                <dt>Жанр</dt>
-                <dd>{genreLabel(dialog.book.genre)}</dd>
-                <dt>Мова</dt>
-                <dd>{languageLabel(dialog.book.language)}</dd>
-              </dl>
-              {dialog.book.description && (
-                <p className="book-view__description">{dialog.book.description}</p>
-              )}
-              <div className="form-actions">
-                <button onClick={() => setDialog({ mode: 'edit', book: dialog.book })}>
-                  Редагувати
-                </button>
-                <button className="btn--ghost" onClick={() => remove(dialog.book)}>
-                  Прибрати з полиці
-                </button>
-              </div>
-            </div>
-          </div>
+          <BookDetails book={dialog.book}>
+            <button onClick={() => setDialog({ mode: 'edit', book: dialog.book })}>
+              Редагувати
+            </button>
+            <button className="btn--ghost" onClick={() => remove(dialog.book)}>
+              Прибрати з полиці
+            </button>
+          </BookDetails>
         </Modal>
       )}
     </>

@@ -13,6 +13,23 @@ resource "aws_dynamodb_table" "main" {
     name = "sk"
     type = "S"
   }
+  attribute {
+    name = "gsi1pk"
+    type = "S"
+  }
+  attribute {
+    name = "gsi1sk"
+    type = "S"
+  }
+
+  # Catalog index: gsi1pk = "BOOK" | "WISH", gsi1sk = "<created_at>#<id>".
+  # Lists everyone's books / wishes newest first (main page, matching).
+  global_secondary_index {
+    name            = "gsi1"
+    hash_key        = "gsi1pk"
+    range_key       = "gsi1sk"
+    projection_type = "ALL"
+  }
 }
 
 resource "aws_s3_bucket" "photos" {

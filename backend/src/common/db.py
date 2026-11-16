@@ -16,3 +16,7 @@ def main_table():
 
 def user_pk(user_id: str) -> str:
     return f"USER#{user_id}"
+
+
+# Global secondary index over every book / wish (see infra/modules/data): gsi1pk = "BOOK" | "WISH".
+CATALOG_INDEX = "gsi1"
