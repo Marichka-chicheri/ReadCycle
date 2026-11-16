@@ -24,7 +24,7 @@ _PHONE_RE = re.compile(r"^\+\d{10,15}$")
 
 
 def now_iso() -> str:
-    return datetime.now(UTC).isoformat(timespec="seconds")
+    return datetime.now(UTC).isoformat(timespec="milliseconds")
 
 
 def normalize_telegram(value: str) -> str:

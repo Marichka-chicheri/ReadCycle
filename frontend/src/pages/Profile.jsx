@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import MyShelf from '../components/MyShelf.jsx';
+import Wishlist from '../components/Wishlist.jsx';
 import ProfileForm from '../components/ProfileForm.jsx';
 import { genreLabel } from '../genres.js';
 import { useProfile } from '../ProfileContext.jsx';
@@ -38,7 +39,7 @@ function Contacts({ profile }) {
   );
 }
 
-// The signed-in user's own profile: identity card, details and their bookshelf.
+// The signed-in user's own profile: identity card, details, bookshelf and wishlist.
 export default function Profile() {
   const { profile, save } = useProfile();
   const [editing, setEditing] = useState(false);
@@ -114,6 +115,7 @@ export default function Profile() {
       </div>
 
       <MyShelf />
+      <Wishlist />
     </section>
   );
 }

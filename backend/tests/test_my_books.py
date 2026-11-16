@@ -100,7 +100,7 @@ def test_create_validation_error():
 
 
 def test_limit(monkeypatch):
-    monkeypatch.setattr(my_books, "MAX_BOOKS_PER_USER", 1)
+    monkeypatch.setattr(my_books.collection, "limit", 1)
     _add()
     resp = my_books.create_handler(make_event(body=BOOK), None)
     assert resp["statusCode"] == 400

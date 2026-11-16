@@ -25,7 +25,7 @@ OFFER_EXCHANGE = "exchange"  # лише обмін
 OFFERS = (OFFER_GIVE, OFFER_EXCHANGE)
 
 
-def _clean(value: Any) -> str:
+def clean_text(value: Any) -> str:
     return " ".join(str(value or "").split())
 
 
@@ -46,11 +46,11 @@ class Book:
     def from_input(cls, owner_id: str, data: dict[str, Any], existing: Book | None = None) -> Book:
         errors: dict[str, str] = {}
 
-        title = _clean(data.get("title"))
+        title = clean_text(data.get("title"))
         if not 1 <= len(title) <= TITLE_MAX:
             errors["title"] = f"Вкажіть назву (до {TITLE_MAX} символів)"
 
-        author = _clean(data.get("author"))
+        author = clean_text(data.get("author"))
         if not 1 <= len(author) <= AUTHOR_MAX:
             errors["author"] = f"Вкажіть автора (до {AUTHOR_MAX} символів)"
 
@@ -86,6 +86,10 @@ class Book:
             created_at=existing.created_at if existing else ts,
             updated_at=ts,
         )
+
+    @property
+    def id(self) -> str:
+        return self.book_id
 
     def to_item(self) -> dict[str, Any]:
         return {

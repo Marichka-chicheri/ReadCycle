@@ -99,7 +99,9 @@ export default function BookForm({
         {err('offer')}
       </div>
       <label>
-        Короткий опис <span className="optional">необов'язково</span>
+        <span>
+          Короткий опис <span className="optional">необов'язково</span>
+        </span>
         <textarea
           rows={3}
           maxLength={1000}

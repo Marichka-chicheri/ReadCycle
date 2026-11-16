@@ -947,6 +947,191 @@ select {
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
 }
 
+/* ---------------- wishlist: card-catalogue drawer ---------------- */
+
+.section-head--spaced {
+  margin-top: 64px;
+}
+.drawer {
+  position: relative;
+  border-radius: 8px;
+  background:
+    var(--grain-h), linear-gradient(180deg, var(--oak-light), var(--oak) 40%, var(--oak-dark));
+  background-size:
+    800px 240px,
+    auto;
+  padding: 18px 18px 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 190, 0.45),
+    0 30px 50px -28px rgba(30, 10, 5, 0.85);
+}
+.drawer__bed {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 22px 20px;
+  min-height: 200px;
+  padding: 28px 26px 32px;
+  border-radius: 3px;
+  background: var(--grain-back), linear-gradient(180deg, #3a2312, #2a180b);
+  background-size:
+    480px 900px,
+    auto;
+  box-shadow:
+    inset 0 12px 22px rgba(0, 0, 0, 0.6),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.4);
+}
+.drawer__front {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 16px -18px 0;
+  padding: 18px 0 22px;
+  border-radius: 0 0 8px 8px;
+  background: var(--grain-h), linear-gradient(180deg, var(--oak) 0%, var(--oak-dark) 100%);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 230, 190, 0.3),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.35);
+}
+/* brass label holder */
+.drawer__label {
+  padding: 5px 26px;
+  border: 2px solid #b89148;
+  border-radius: 2px;
+  background: var(--cream-100);
+  color: var(--wine-800);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  box-shadow:
+    0 0 0 3px #8e6b2f,
+    0 3px 6px rgba(0, 0, 0, 0.5);
+}
+/* brass cup pull */
+.drawer__pull {
+  width: 96px;
+  height: 16px;
+  border-radius: 0 0 48px 48px;
+  background: linear-gradient(180deg, #8e6b2f, #e7cf8f 45%, #a5823d);
+  box-shadow:
+    inset 0 -2px 3px rgba(0, 0, 0, 0.35),
+    0 4px 6px rgba(0, 0, 0, 0.5);
+}
+
+.catalog-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 6px;
+  min-height: 168px;
+  padding: 14px 18px 30px;
+  border-radius: 2px;
+  color: #2b2620;
+  text-align: left;
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  font-weight: 400;
+  letter-spacing: 0;
+  background:
+    repeating-linear-gradient(180deg, transparent 0 21px, rgba(90, 120, 160, 0.16) 21px 22px) 0
+      50px / 100% calc(100% - 50px) no-repeat,
+    #fbf5e6;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 10px 16px -8px rgba(0, 0, 0, 0.7);
+  transform: rotate(-0.6deg);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+.catalog-card:nth-child(even) {
+  transform: rotate(0.5deg);
+}
+.catalog-card:nth-child(3n) {
+  transform: rotate(-0.2deg);
+}
+.catalog-card:hover {
+  filter: none;
+  transform: translateY(-6px) rotate(0deg);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 18px 22px -10px rgba(0, 0, 0, 0.8);
+}
+.catalog-card__head {
+  display: flex;
+  justify-content: space-between;
+  margin: 0 -18px 6px;
+  padding: 0 18px 7px;
+  border-bottom: 1.5px solid rgba(176, 40, 52, 0.6);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8a1f2b;
+}
+.catalog-card__title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+.catalog-card__author {
+  font-size: 0.8rem;
+  color: #5b5148;
+}
+.catalog-card__meta {
+  font-size: 0.72rem;
+  color: #6f6458;
+}
+.catalog-card__note {
+  margin-top: 4px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.02rem;
+  line-height: 1.2;
+  color: #2b4a7a; /* fountain-pen ink */
+}
+.catalog-card__hole {
+  position: absolute;
+  left: 50%;
+  bottom: 9px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: #2a180b;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+.catalog-card--new {
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  color: var(--gold-soft);
+  border: 1.5px dashed rgba(230, 211, 163, 0.5);
+  box-shadow: none;
+  transform: none;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.catalog-card--new:nth-child(even),
+.catalog-card--new:nth-child(3n) {
+  transform: none;
+}
+.catalog-card--new:hover {
+  border-color: var(--gold-soft);
+  box-shadow: none;
+  transform: none;
+}
+.catalog-card__plus {
+  font-family: var(--font-serif);
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
 /* =========================================================================
    Furniture
    ========================================================================= */
