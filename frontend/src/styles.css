@@ -1,0 +1,74 @@
+:root {
+  font-family: system-ui, sans-serif;
+  color: #1f2328;
+  background: #f6f7f9;
+}
+body {
+  margin: 0;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 24px;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+}
+.logo {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #7a1f2b;
+  text-decoration: none;
+}
+main {
+  max-width: 720px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 380px;
+  margin: 0 auto;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+input {
+  padding: 8px;
+  font-size: 1rem;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+}
+button {
+  padding: 8px 14px;
+  font-size: 1rem;
+  border: 0;
+  border-radius: 4px;
+  background: #7a1f2b;
+  color: #fff;
+  cursor: pointer;
+}
+button:disabled {
+  opacity: 0.6;
+}
+button.link {
+  background: none;
+  color: #0b57d0;
+  padding: 0;
+  font-size: inherit;
+}
+.error {
+  color: #b00020;
+}
+.ok {
+  color: #1a7f37;
+}
