@@ -67,6 +67,20 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false # keep `terraform output -raw` clean
+      - name: Debug OIDC subject (temporary)
+        run: |
+          python3 - <<'PY'
+          import base64, json, os, urllib.request
+          req = urllib.request.Request(
+              os.environ["ACTIONS_ID_TOKEN_REQUEST_URL"] + "&audience=sts.amazonaws.com",
+              headers={"Authorization": "bearer " + os.environ["ACTIONS_ID_TOKEN_REQUEST_TOKEN"]},
+          )
+          token = json.load(urllib.request.urlopen(req))["value"]
+          payload = token.split(".")[1]
+          claims = json.loads(base64.urlsafe_b64decode(payload + "=" * (-len(payload) % 4)))
+          print("sub =", claims["sub"])
+          print("aud =", claims["aud"])
+          PY
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
