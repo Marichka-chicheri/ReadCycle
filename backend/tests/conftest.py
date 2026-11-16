@@ -17,14 +17,31 @@ class FakeTable:
         self.items[(Item["pk"], Item["sk"])] = dict(Item)
         return {}
 
+    def delete_item(self, Key):
+        self.items.pop((Key["pk"], Key["sk"]), None)
+        return {}
+
+    def query(self, KeyConditionExpression, ExpressionAttributeValues, **kwargs):
+        # Supports the one pattern the repositories use: "pk = :pk AND begins_with(sk, :prefix)"
+        assert KeyConditionExpression == "pk = :pk AND begins_with(sk, :prefix)"
+        pk, prefix = ExpressionAttributeValues[":pk"], ExpressionAttributeValues[":prefix"]
+        found = [
+            dict(item)
+            for (ipk, isk), item in sorted(self.items.items())
+            if ipk == pk and isk.startswith(prefix)
+        ]
+        return {"Items": found}
+
 
 @pytest.fixture
 def table():
     return FakeTable()
 
 
-def make_event(sub="user-1", email="anna@ucu.edu.ua", body=None):
+def make_event(sub="user-1", email="anna@ucu.edu.ua", body=None, path=None):
     event = {"requestContext": {"authorizer": {"jwt": {"claims": {"sub": sub, "email": email}}}}}
+    if path is not None:
+        event["pathParameters"] = path
     if body is not None:
         event["body"] = json.dumps(body)
     return event

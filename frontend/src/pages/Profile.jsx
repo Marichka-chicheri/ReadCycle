@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Shelf } from '../components/Bookshelf.jsx';
+import MyShelf from '../components/MyShelf.jsx';
 import ProfileForm from '../components/ProfileForm.jsx';
 import { genreLabel } from '../genres.js';
 import { useProfile } from '../ProfileContext.jsx';
@@ -38,7 +38,7 @@ function Contacts({ profile }) {
   );
 }
 
-// The signed-in user's own profile: identity card, details, and (from stage 3) their shelves.
+// The signed-in user's own profile: identity card, details and their bookshelf.
 export default function Profile() {
   const { profile, save } = useProfile();
   const [editing, setEditing] = useState(false);
@@ -113,15 +113,7 @@ export default function Profile() {
         </div>
       </div>
 
-      <div className="section-head">
-        <h2>Моя полиця</h2>
-        <span className="muted">Книги, які готова віддати або обміняти</span>
-      </div>
-      <div className="wall">
-        <div className="wall-shelves">
-          <Shelf variant="wall" empty="Скоро тут з’являться твої книги" />
-        </div>
-      </div>
+      <MyShelf />
     </section>
   );
 }

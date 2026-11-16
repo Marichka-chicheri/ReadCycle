@@ -28,3 +28,24 @@ export const GENRES = [
 
 const LABELS = Object.fromEntries(GENRES);
 export const genreLabel = (code) => LABELS[code] || code;
+
+// Same list as backend/src/common/languages.py.
+export const LANGUAGES = [
+  ['uk', 'Українська'],
+  ['en', 'Англійська'],
+  ['pl', 'Польська'],
+  ['de', 'Німецька'],
+  ['fr', 'Французька'],
+  ['es', 'Іспанська'],
+  ['it', 'Італійська'],
+  ['other', 'Інша'],
+];
+const LANGUAGE_LABELS = Object.fromEntries(LANGUAGES);
+export const languageLabel = (code) => LANGUAGE_LABELS[code] || code;
+
+// What the owner wants for a book (backend/src/domain/book.py OFFERS).
+export const OFFERS = [
+  ['exchange', 'Обміняю', 'хочу щось натомість'],
+  ['give', 'Віддам', 'безкоштовно, просто забери'],
+];
+export const offerLabel = (code) => OFFERS.find(([c]) => c === code)?.[1] || code;

@@ -1,0 +1,105 @@
+"""A book that its owner is ready to give away or exchange.
+
+Stored as pk=USER#<owner>, sk=BOOK#<id>, so one query returns a user's whole shelf.
+Every book also carries gsi1pk="BOOK" / gsi1sk=<created_at>#<id>: the catalog index
+(added on stage 5) uses these to list everyone's books, newest first.
+"""
+
+from __future__ import annotations
+
+import uuid
+from dataclasses import asdict, dataclass
+from typing import Any
+
+from common.genres import is_genre
+from common.http import ValidationError
+from common.languages import is_language
+from domain.profile import now_iso
+
+TITLE_MAX = 150
+AUTHOR_MAX = 100
+DESCRIPTION_MAX = 1000
+
+OFFER_GIVE = "give"  # віддам безкоштовно
+OFFER_EXCHANGE = "exchange"  # лише обмін
+OFFERS = (OFFER_GIVE, OFFER_EXCHANGE)
+
+
+def _clean(value: Any) -> str:
+    return " ".join(str(value or "").split())
+
+
+@dataclass
+class Book:
+    book_id: str
+    owner_id: str
+    title: str
+    author: str
+    language: str
+    genre: str
+    offer: str
+    description: str = ""
+    created_at: str = ""
+    updated_at: str = ""
+
+    @classmethod
+    def from_input(cls, owner_id: str, data: dict[str, Any], existing: Book | None = None) -> Book:
+        errors: dict[str, str] = {}
+
+        title = _clean(data.get("title"))
+        if not 1 <= len(title) <= TITLE_MAX:
+            errors["title"] = f"Вкажіть назву (до {TITLE_MAX} символів)"
+
+        author = _clean(data.get("author"))
+        if not 1 <= len(author) <= AUTHOR_MAX:
+            errors["author"] = f"Вкажіть автора (до {AUTHOR_MAX} символів)"
+
+        language = str(data.get("language") or "")
+        if not is_language(language):
+            errors["language"] = "Оберіть мову"
+
+        genre = str(data.get("genre") or "")
+        if not is_genre(genre):
+            errors["genre"] = "Оберіть жанр"
+
+        offer = str(data.get("offer") or "")
+        if offer not in OFFERS:
+            errors["offer"] = "Оберіть: віддам чи обміняю"
+
+        description = str(data.get("description") or "").strip()
+        if len(description) > DESCRIPTION_MAX:
+            errors["description"] = f"Не більше {DESCRIPTION_MAX} символів"
+
+        if errors:
+            raise ValidationError(errors)
+
+        ts = now_iso()
+        return cls(
+            book_id=existing.book_id if existing else uuid.uuid4().hex[:12],
+            owner_id=owner_id,
+            title=title,
+            author=author,
+            language=language,
+            genre=genre,
+            offer=offer,
+            description=description,
+            created_at=existing.created_at if existing else ts,
+            updated_at=ts,
+        )
+
+    def to_item(self) -> dict[str, Any]:
+        return {
+            "pk": f"USER#{self.owner_id}",
+            "sk": f"BOOK#{self.book_id}",
+            "type": "BOOK",
+            "gsi1pk": "BOOK",
+            "gsi1sk": f"{self.created_at}#{self.book_id}",
+            **asdict(self),
+        }
+
+    @classmethod
+    def from_item(cls, item: dict[str, Any]) -> Book:
+        return cls(**{f: item.get(f, "") for f in cls.__dataclass_fields__})
+
+    def to_json(self) -> dict[str, Any]:
+        return asdict(self)

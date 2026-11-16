@@ -706,6 +706,247 @@ textarea {
     var(--shadow-soft);
 }
 
+/* ---------------- my shelf: dialogs, cover, offer ---------------- */
+
+.section-head__action {
+  margin-left: auto;
+}
+.optional {
+  font-weight: 400;
+  color: var(--taupe-500);
+}
+select {
+  appearance: none;
+  padding-right: 36px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--taupe-600) 50%),
+    linear-gradient(135deg, var(--taupe-600) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 52%,
+    calc(100% - 13px) 52%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: rgba(30, 10, 12, 0.55);
+  backdrop-filter: blur(3px);
+  animation: fade-in 0.18s ease;
+}
+.modal__panel {
+  position: relative;
+  width: min(560px, 100%);
+  padding: 36px 40px;
+  border-radius: var(--radius-md);
+  background: var(--paper), var(--cream-100);
+  box-shadow: 0 40px 80px -30px rgba(0, 0, 0, 0.7);
+  animation: rise 0.22s ease;
+}
+.modal__panel--wide {
+  width: min(820px, 100%);
+}
+.modal__close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--taupe-600);
+  font-size: 1.6rem;
+  line-height: 1;
+  box-shadow: none;
+}
+.modal__close:hover {
+  background: var(--cream-200);
+  filter: none;
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+.offer-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.offer-option {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--cream-50);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--sand-300);
+  text-align: left;
+}
+.offer-option:hover {
+  filter: none;
+  box-shadow: inset 0 0 0 1px var(--wine-500);
+}
+.offer-option small {
+  font-weight: 400;
+  font-size: 0.76rem;
+  color: var(--taupe-600);
+}
+.offer-option--on {
+  background: var(--wine-700);
+  color: var(--cream-50);
+  box-shadow: none;
+}
+.offer-option--on small {
+  color: var(--gold-soft);
+}
+
+.book-view {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 36px;
+  align-items: start;
+}
+.book-view__info h2 {
+  margin: 10px 0 4px;
+  font-size: 2.1rem;
+}
+.book-view__author {
+  margin: 0 0 18px;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--ink-soft);
+}
+.book-view__description {
+  margin: 0 0 22px;
+  white-space: pre-line;
+}
+.facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 18px;
+  margin: 0 0 18px;
+  font-size: 0.92rem;
+}
+.facts dt {
+  color: var(--taupe-600);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding-top: 3px;
+}
+.facts dd {
+  margin: 0;
+}
+.offer-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 3px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.offer-badge--exchange {
+  background: var(--cream-200);
+  color: var(--wine-700);
+}
+.offer-badge--give {
+  background: linear-gradient(180deg, #e7cf8f, #c9a961);
+  color: var(--oak-deep);
+}
+
+/* drawn front cover */
+.cover {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  padding: 16px;
+  border-radius: 3px 8px 8px 3px;
+  color: var(--gold-soft);
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, 0.35) 0, rgba(255, 255, 255, 0.12) 4%, transparent 9%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.04) 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.12), transparent 60%), var(--c);
+  box-shadow:
+    inset -2px 0 0 rgba(0, 0, 0, 0.25),
+    6px 10px 0 -2px #efe4cf,
+    6px 10px 0 -1px rgba(0, 0, 0, 0.15),
+    0 24px 40px -18px rgba(0, 0, 0, 0.7);
+}
+.cover--light {
+  color: var(--wine-800);
+}
+.cover__frame {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  height: 100%;
+  padding: 16px 12px;
+  border: 1.5px solid currentColor;
+  outline: 1px solid currentColor;
+  outline-offset: -6px;
+  text-align: center;
+  opacity: 0.92;
+}
+.cover__author {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.cover__ornament {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+.cover__title {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+}
+.cover--light .cover__title {
+  text-shadow: none;
+}
+
+.wall__legend {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--taupe-600);
+  text-align: center;
+}
+.legend-ribbon {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  margin-right: 4px;
+  vertical-align: -2px;
+  background: linear-gradient(180deg, #e7cf8f, #b89148);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 75%, 0 100%);
+}
+
 /* =========================================================================
    Furniture
    ========================================================================= */
@@ -791,6 +1032,17 @@ button.spine--clickable:active {
 .spine[data-bands='2']::before {
   height: 3px;
   border-bottom: 1.5px solid rgba(201, 169, 97, 0.75);
+}
+.spine__ribbon {
+  position: absolute;
+  top: -2px;
+  right: 22%;
+  width: 7px;
+  height: 34px;
+  background: linear-gradient(180deg, #a5823d, #e7cf8f 30%, #c9a961);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  z-index: 1;
 }
 .spine__title {
   flex: 1;
@@ -1009,6 +1261,12 @@ button.spine--clickable:active {
 /* ---------------- responsive ---------------- */
 
 @media (max-width: 860px) {
+  .book-view {
+    grid-template-columns: 1fr;
+  }
+  .book-view .cover {
+    max-width: 220px;
+  }
   .auth,
   .hero,
   .profile__top,

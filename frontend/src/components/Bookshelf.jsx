@@ -35,7 +35,7 @@ export function spineStyle(title = '', author = '') {
   return { color, height, width: Math.round(width), light, bands };
 }
 
-export function BookSpine({ title, author, lean = 0, onClick, selected = false }) {
+export function BookSpine({ title, author, offer, lean = 0, onClick, selected = false }) {
   const s = spineStyle(title, author);
   // A plain <div> when the book is decorative; a <button> only when it can be clicked.
   const Tag = onClick ? 'button' : 'div';
@@ -62,6 +62,8 @@ export function BookSpine({ title, author, lean = 0, onClick, selected = false }
       }}
       title={author ? `${title} — ${author}` : title}
     >
+      {/* a gold silk bookmark marks books that are given away for free */}
+      {offer === 'give' && <span className="spine__ribbon" aria-hidden="true" />}
       <span className="spine__title">{title}</span>
       <span className="spine__mark" aria-hidden="true" />
     </Tag>
@@ -80,6 +82,7 @@ export function Shelf({ books = [], variant = 'cabinet', empty, onBookClick, chi
             key={b.id || `${b.title}-${i}`}
             title={b.title}
             author={b.author}
+            offer={b.offer}
             // the last book on a shelf that is not full leans on its neighbour
             lean={i === books.length - 1 && books.length > 2 && books.length < 9 ? -6 : 0}
             onClick={onBookClick ? () => onBookClick(b) : undefined}
