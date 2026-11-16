@@ -15,7 +15,12 @@ export async function api(path, options = {}) {
   const body = await res.json().catch(() => null);
   if (!res.ok) {
     const message = body?.error?.message || body?.message || `HTTP ${res.status}`;
-    throw Object.assign(new Error(message), { status: res.status });
+    // `fields` carries per-field messages for VALIDATION_ERROR (shown next to form inputs)
+    throw Object.assign(new Error(message), {
+      status: res.status,
+      code: body?.error?.code,
+      fields: body?.error?.fields || {},
+    });
   }
   return body;
 }

@@ -6,8 +6,10 @@ locals {
 
   # Add new API routes here: one entry = one Lambda (backend/src/handlers/<module>.py).
   api_routes = {
-    health = { route_key = "GET /health", handler = "handlers.health.handler", auth = false }
-    me     = { route_key = "GET /me", handler = "handlers.me.handler", auth = true }
+    health      = { route_key = "GET /health", handler = "handlers.health.handler", auth = false }
+    me          = { route_key = "GET /me", handler = "handlers.me.handler", auth = true }
+    profile_get = { route_key = "GET /profile", handler = "handlers.profile.get_handler", auth = true }
+    profile_put = { route_key = "PUT /profile", handler = "handlers.profile.put_handler", auth = true }
   }
 }
 

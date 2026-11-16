@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { confirmSignUp, friendlyError, isAllowedEmail, resendCode, signUp } from '../auth.js';
 import { getConfig } from '../config.js';
+import AuthLayout from '../components/AuthLayout.jsx';
 
 // Two steps: sign up with email+password, then confirm with the emailed code.
 export default function Register() {
@@ -53,65 +54,73 @@ export default function Register() {
 
   if (step === 'confirm') {
     return (
-      <form onSubmit={submitConfirm} className="card">
-        <h1>Підтвердження пошти</h1>
-        <label>
-          Пошта
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </label>
-        <label>
-          Код з листа
-          <input value={code} onChange={(e) => setCode(e.target.value)} required />
-        </label>
-        {info && <p className="ok">{info}</p>}
-        {error && <p className="error">{error}</p>}
-        <button disabled={busy}>Підтвердити</button>
-        <button
-          type="button"
-          className="link"
-          disabled={busy}
-          onClick={() => run(async () => {
-            await resendCode(email.trim());
-            setInfo('Новий код надіслано.');
-          })}
-        >
-          Надіслати код ще раз
-        </button>
-      </form>
+      <AuthLayout>
+        <form onSubmit={submitConfirm} className="card">
+          <span className="eyebrow">Крок 2 з 2</span>
+          <h1>Підтвердження пошти</h1>
+          <label>
+            Пошта
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+          </label>
+          <label>
+            Код з листа
+            <input value={code} onChange={(e) => setCode(e.target.value)} required />
+          </label>
+          {info && <p className="ok">{info}</p>}
+          {error && <p className="error">{error}</p>}
+          <button disabled={busy}>Підтвердити</button>
+          <button
+            type="button"
+            className="link"
+            disabled={busy}
+            onClick={() =>
+              run(async () => {
+                await resendCode(email.trim());
+                setInfo('Новий код надіслано.');
+              })
+            }
+          >
+            Надіслати код ще раз
+          </button>
+        </form>
+      </AuthLayout>
     );
   }
 
   return (
-    <form onSubmit={submitSignUp} className="card">
-      <h1>Реєстрація</h1>
-      <label>
-        Пошта @{domain}
-        <input
-          type="email"
-          placeholder={`name@${domain}`}
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </label>
-      <label>
-        Пароль (мін. 8 символів, малі літери та цифри)
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          minLength={8}
-          required
-        />
-      </label>
-      {error && <p className="error">{error}</p>}
-      <button disabled={busy}>Зареєструватися</button>
-      <p>
-        Вже є акаунт? <Link to="/login">Увійти</Link> ·{' '}
-        <button type="button" className="link" onClick={() => setStep('confirm')}>
-          Маю код
-        </button>
-      </p>
-    </form>
+    <AuthLayout>
+      <form onSubmit={submitSignUp} className="card">
+        <span className="eyebrow">Крок 1 з 2</span>
+        <h1>Реєстрація</h1>
+        <label>
+          Пошта @{domain}
+          <input
+            type="email"
+            placeholder={`name@${domain}`}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </label>
+        <label>
+          Пароль (мін. 8 символів, малі літери та цифри)
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            minLength={8}
+            required
+          />
+        </label>
+        {error && <p className="error">{error}</p>}
+        <button disabled={busy}>Зареєструватися</button>
+        <p>
+          Вже є акаунт? <Link to="/login">Увійти</Link> ·{' '}
+          <button type="button" className="link" onClick={() => setStep('confirm')}>
+            Маю код
+          </button>
+        </p>
+      </form>
+    </AuthLayout>
   );
 }

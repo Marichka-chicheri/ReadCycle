@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { friendlyError } from '../auth.js';
 import { useAuth } from '../AuthContext.jsx';
+import AuthLayout from '../components/AuthLayout.jsx';
 
 export default function Login() {
   const { user, signIn } = useAuth();
@@ -33,27 +34,30 @@ export default function Login() {
   };
 
   return (
-    <form onSubmit={submit} className="card">
-      <h1>Вхід</h1>
-      {location.state?.confirmed && <p className="ok">Пошту підтверджено. Увійдіть.</p>}
-      <label>
-        Пошта УКУ
-        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-      </label>
-      <label>
-        Пароль
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </label>
-      {error && <p className="error">{error}</p>}
-      <button disabled={busy}>Увійти</button>
-      <p>
-        Немає акаунта? <Link to="/register">Зареєструватися</Link>
-      </p>
-    </form>
+    <AuthLayout>
+      <form onSubmit={submit} className="card">
+        <span className="eyebrow">З поверненням</span>
+        <h1>Вхід</h1>
+        {location.state?.confirmed && <p className="ok">Пошту підтверджено. Увійдіть.</p>}
+        <label>
+          Пошта УКУ
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        </label>
+        <label>
+          Пароль
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </label>
+        {error && <p className="error">{error}</p>}
+        <button disabled={busy}>Увійти</button>
+        <p>
+          Немає акаунта? <Link to="/register">Зареєструватися</Link>
+        </p>
+      </form>
+    </AuthLayout>
   );
 }

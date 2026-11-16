@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { AuthProvider } from './AuthContext.jsx';
 import { loadConfig } from './config.js';
+import { ProfileProvider } from './ProfileContext.jsx';
 import './styles.css';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
@@ -14,10 +15,14 @@ loadConfig()
       <React.StrictMode>
         <BrowserRouter>
           <AuthProvider>
-            <App />
+            <ProfileProvider>
+              <App />
+            </ProfileProvider>
           </AuthProvider>
         </BrowserRouter>
       </React.StrictMode>,
     ),
   )
-  .catch((e) => root.render(<p className="error">Не вдалося завантажити config.json: {e.message}</p>));
+  .catch((e) =>
+    root.render(<p className="error">Не вдалося завантажити config.json: {e.message}</p>),
+  );
