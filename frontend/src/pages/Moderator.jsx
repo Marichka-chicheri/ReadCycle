@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
+import { useDialogs } from '../components/Dialogs.jsx';
 import { REPORT_REASONS } from '../genres.js';
 
 const reasonLabel = (code) => REPORT_REASONS.find(([c]) => c === code)?.[1] || code;
@@ -42,6 +43,7 @@ export default function Moderator() {
 function Reports() {
   const [groups, setGroups] = useState(null);
   const [error, setError] = useState('');
+  const { confirm, notify } = useDialogs();
 
   const load = useCallback(
     () =>
@@ -54,8 +56,9 @@ function Reports() {
     load();
   }, [load]);
 
-  const resolve = async (g, action, question) => {
-    if (question && !window.confirm(question)) return;
+  // `ask`: { title, message, confirmLabel } of the confirmation dialog
+  const resolve = async (g, action, ask) => {
+    if (!(await confirm({ danger: action !== 'dismiss', ...ask }))) return;
     try {
       await api('/mod/reports/resolve', {
         method: 'POST',
@@ -63,7 +66,7 @@ function Reports() {
       });
       await load();
     } catch (e) {
-      window.alert(`Не вдалося: ${e.message}`);
+      notify(`Не вдалося: ${e.message}`);
     }
   };
 
@@ -105,13 +108,28 @@ function Reports() {
               ))}
             </ul>
             <div className="form-actions">
-              <button className="btn--ghost btn--small" onClick={() => resolve(g, 'dismiss')}>
-                Відхилити скаргу
+              <button
+                className="btn--ghost btn--small"
+                onClick={() =>
+                  resolve(g, 'dismiss', {
+                    title: `Зняти всі скарги на «${g.owner_name}»?`,
+                    message: 'Зі списку зникнуть усі скарги на цього студента і на його книги.',
+                    confirmLabel: 'Зняти скарги',
+                  })
+                }
+              >
+                Зняти скарги
               </button>
               {isBook && g.book_exists && (
                 <button
                   className="btn--small"
-                  onClick={() => resolve(g, 'remove_book', `Видалити «${g.title}» з полиці?`)}
+                  onClick={() =>
+                    resolve(g, 'remove_book', {
+                      title: `Видалити «${g.title}» з полиці?`,
+                      message: 'Книга зникне в усіх, скарги на неї закриються.',
+                      confirmLabel: 'Видалити книгу',
+                    })
+                  }
                 >
                   Видалити книгу
                 </button>
@@ -119,7 +137,14 @@ function Reports() {
               {!g.owner_banned && (
                 <button
                   className="btn--small"
-                  onClick={() => resolve(g, 'ban_user', `Заблокувати акаунт «${g.owner_name}»?`)}
+                  onClick={() =>
+                    resolve(g, 'ban_user', {
+                      title: `Заблокувати акаунт «${g.owner_name}»?`,
+                      message:
+                        'Книги й профіль зникнуть для всіх, змінювати щось студент не зможе. Усі скарги на нього закриються. Розблокувати можна у вкладці «Заблоковані».',
+                      confirmLabel: 'Заблокувати',
+                    })
+                  }
                 >
                   Заблокувати акаунт
                 </button>
@@ -135,6 +160,7 @@ function Reports() {
 function Bans() {
   const [bans, setBans] = useState(null);
   const [error, setError] = useState('');
+  const { confirm, notify } = useDialogs();
 
   useEffect(() => {
     api('/mod/bans')
@@ -143,12 +169,15 @@ function Bans() {
   }, []);
 
   const unban = async (b) => {
-    if (!window.confirm(`Розблокувати «${b.display_name}»?`)) return;
+    if (
+      !(await confirm({ title: `Розблокувати «${b.display_name}»?`, confirmLabel: 'Розблокувати' }))
+    )
+      return;
     try {
       await api(`/mod/bans/${encodeURIComponent(b.user_id)}`, { method: 'DELETE' });
       setBans((list) => list.filter((x) => x.user_id !== b.user_id));
     } catch (e) {
-      window.alert(`Не вдалося: ${e.message}`);
+      notify(`Не вдалося: ${e.message}`);
     }
   };
 
@@ -164,7 +193,7 @@ function Bans() {
             <Link to={`/u/${b.user_id}`}>{b.display_name}</Link>
             <span className="muted">
               {' '}
-              · {b.auto ? 'автоматично' : 'модератор'} · {day(b.created_at)}
+              · {day(b.created_at)}
               {b.reason && ` · ${b.reason}`}
             </span>
           </span>

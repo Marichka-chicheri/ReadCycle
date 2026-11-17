@@ -50,8 +50,7 @@ export const OFFERS = [
 ];
 // Life of a book (backend/src/domain/book.py STATUSES). "given" books leave the catalog.
 export const STATUSES = [
-  ['available', 'Доступна'],
-  ['reserved', 'Зарезервована'],
+  ['available', 'На полиці'],
   ['given', 'Віддана'],
 ];
 export const statusLabel = (code) => STATUSES.find(([c]) => c === code)?.[1] || code;
@@ -64,4 +63,4 @@ export const REPORT_REASONS = [
   ['other', 'Інше'],
 ];
 
-export const offerLabel =(code) => OFFERS.find(([c]) => c === code)?.[1] || code;
+export const offerLabel = (code) => OFFERS.find(([c]) => c === code)?.[1] || code;

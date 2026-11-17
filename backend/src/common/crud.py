@@ -54,6 +54,11 @@ class OwnedCollectionApi:
             raise ApiError(400, "BAD_REQUEST", "Id is required")
         return item_id
 
+    @staticmethod
+    def _counted(repo, owner_id: str) -> int:
+        """Items towards the limit: books already given away do not take a place."""
+        return sum(1 for e in repo.list_by_owner(owner_id) if not getattr(e, "is_given", False))
+
     def _own(self, repo, owner_id: str, item_id: str):
         entity = repo.get(owner_id, item_id)
         if not entity:
@@ -70,7 +75,7 @@ class OwnedCollectionApi:
         assert_not_banned(owner_id)
         repo = self.repo_factory()
         entity = self.entity.from_input(owner_id, json_body(event))
-        if repo.count(owner_id) >= self.limit:
+        if self._counted(repo, owner_id) >= self.limit:
             raise ApiError(400, "LIMIT_REACHED", self.limit_message)
         repo.save(entity)
         return {self.name: entity.to_json()}

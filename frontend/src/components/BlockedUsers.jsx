@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
+import { useDialogs } from './Dialogs.jsx';
 
 // "Заблоковані" in the profile: people the user does not want to see, with an unblock button.
 // Renders nothing while the list is empty.
 export default function BlockedUsers() {
   const [blocks, setBlocks] = useState([]);
+  const { notify } = useDialogs();
 
   useEffect(() => {
     api('/my/blocks')
@@ -18,7 +20,7 @@ export default function BlockedUsers() {
       await api(`/blocks/${encodeURIComponent(id)}`, { method: 'DELETE' });
       setBlocks((list) => list.filter((b) => b.user_id !== id));
     } catch (e) {
-      window.alert(`Не вдалося розблокувати: ${e.message}`);
+      notify(`Не вдалося розблокувати: ${e.message}`);
     }
   };
 

@@ -105,3 +105,10 @@ def test_limit(monkeypatch):
     resp = my_books.create_handler(make_event(body=BOOK), None)
     assert resp["statusCode"] == 400
     assert body_of(resp)["error"]["code"] == "LIMIT_REACHED"
+
+
+def test_given_books_do_not_count_towards_the_limit(monkeypatch):
+    monkeypatch.setattr(my_books.collection, "limit", 1)
+    _add({**BOOK, "status": "given"})
+    resp = my_books.create_handler(make_event(body=BOOK), None)
+    assert resp["statusCode"] == 200

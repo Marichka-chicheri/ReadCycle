@@ -2,8 +2,7 @@
 
 Stored as pk=USER#<id>, sk=BAN, gsi1pk="BAN" (so every ban can be listed through the catalog
 index). A banned student's books and profile disappear for everyone else and they cannot add
-or change anything. Bans are set by a moderator, or automatically when enough different
-students complain (the moderator then reviews it and can lift it).
+or change anything. Only a moderator sets or lifts a ban; complaints alone never do.
 """
 
 from __future__ import annotations
@@ -13,14 +12,12 @@ from typing import Any
 
 from domain.profile import now_iso
 
-AUTO = "auto"  # banned_by value for automatic bans
-
 
 @dataclass
 class Ban:
     user_id: str
     reason: str = ""
-    banned_by: str = ""  # moderator's email, or AUTO
+    banned_by: str = ""  # moderator's email
     created_at: str = ""
 
     @classmethod

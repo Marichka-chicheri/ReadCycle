@@ -34,10 +34,9 @@ OFFER_GIVE = "give"  # віддам безкоштовно
 OFFER_EXCHANGE = "exchange"  # лише обмін
 OFFERS = (OFFER_GIVE, OFFER_EXCHANGE)
 
-STATUS_AVAILABLE = "available"  # доступна
-STATUS_RESERVED = "reserved"  # зарезервована: хтось домовляється, ще видно в каталозі
-STATUS_GIVEN = "given"  # віддана: зникає з каталогу й підбору обміну
-STATUSES = (STATUS_AVAILABLE, STATUS_RESERVED, STATUS_GIVEN)
+STATUS_AVAILABLE = "available"  # на полиці, можна забрати
+STATUS_GIVEN = "given"  # віддана: зникає з каталогу й підбору обміну, на полиці напівпрозора
+STATUSES = (STATUS_AVAILABLE, STATUS_GIVEN)
 
 
 def clean_text(value: Any) -> str:
@@ -152,7 +151,8 @@ class Book:
     @classmethod
     def from_item(cls, item: dict[str, Any]) -> Book:
         book = cls(**{f: item.get(f, "") for f in cls.__dataclass_fields__})
-        book.status = book.status or STATUS_AVAILABLE  # books saved before statuses existed
+        if book.status not in STATUSES:  # saved before statuses existed (or the old "reserved")
+            book.status = STATUS_AVAILABLE
         return book
 
     @property

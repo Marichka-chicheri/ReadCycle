@@ -2,19 +2,17 @@
 
 Body: {target_type: "book"|"user", target_id, owner_id (for a book), reason, comment}.
 
-Limits: a student can send MAX_REPORTS_PER_DAY complaints a day; when AUTO_BAN_COMPLAINANTS
-different students have complained about the same account, it is suspended automatically until
-a moderator reviews it. Complaints are stored in the main table (the moderator page reads them)
-and written to the log.
+Limit: a student can send MAX_REPORTS_PER_DAY complaints a day. A complaint never blocks anyone
+by itself: it waits on the moderator page, and the moderator decides. Complaints are stored in
+the main table and written to the log.
 """
 
 import logging
 
 from common.db import main_table
 from common.http import ApiError, api_handler, current_user, json_body
-from common.moderation import assert_not_banned, ban_repo
-from domain.ban import AUTO, Ban
-from domain.report import AUTO_BAN_COMPLAINANTS, MAX_REPORTS_PER_DAY, TARGET_BOOK, Report
+from common.moderation import assert_not_banned
+from domain.report import MAX_REPORTS_PER_DAY, TARGET_BOOK, Report
 from repositories.books import BookRepository
 from repositories.moderation import ReportRepository
 from repositories.profiles import ProfileRepository
@@ -65,10 +63,4 @@ def create_handler(event, context):
         report.reason,
         report.comment,
     )
-
-    complainants = reports.complainants(report.owner_id)
-    bans = ban_repo()
-    if complainants >= AUTO_BAN_COMPLAINANTS and not bans.get(report.owner_id):
-        bans.save(Ban.create(report.owner_id, AUTO, f"Автоматично: скарг від {complainants} осіб"))
-        log.warning("AUTO-BAN %s after complaints from %s students", report.owner_id, complainants)
     return {"reported": True}

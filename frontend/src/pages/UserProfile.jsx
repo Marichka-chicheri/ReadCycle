@@ -4,6 +4,7 @@ import { api } from '../api.js';
 import BookDetails from '../components/BookDetails.jsx';
 import { Shelf, chunk } from '../components/Bookshelf.jsx';
 import CatalogCard from '../components/CatalogCard.jsx';
+import { useDialogs } from '../components/Dialogs.jsx';
 import { AboutBlock, IdentityCard } from '../components/Identity.jsx';
 import Modal from '../components/Modal.jsx';
 import ReportForm from '../components/ReportForm.jsx';
@@ -20,6 +21,7 @@ export default function UserProfile() {
   const [error, setError] = useState('');
   const [open, setOpen] = useState(null);
   const [reporting, setReporting] = useState(false);
+  const { confirm, notify } = useDialogs();
 
   useEffect(() => {
     setData(null);
@@ -31,12 +33,19 @@ export default function UserProfile() {
 
   const block = async () => {
     const name = data.profile.display_name;
-    if (!window.confirm(`Заблокувати ${name}? Ви більше не бачитимете одне одного.`)) return;
+    const ok = await confirm({
+      title: `Заблокувати ${name}?`,
+      message:
+        'Ви більше не бачитимете одне одного в шафі, обміні й профілях. Розблокувати можна в «Профіль → Заблоковані».',
+      confirmLabel: 'Заблокувати',
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api(`/blocks/${encodeURIComponent(id)}`, { method: 'PUT' });
       navigate('/', { replace: true });
     } catch (e) {
-      window.alert(`Не вдалося заблокувати: ${e.message}`);
+      notify(`Не вдалося заблокувати: ${e.message}`);
     }
   };
 

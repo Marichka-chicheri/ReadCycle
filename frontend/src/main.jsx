@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { AuthProvider } from './AuthContext.jsx';
+import { DialogsProvider } from './components/Dialogs.jsx';
 import { loadConfig } from './config.js';
 import { ProfileProvider } from './ProfileContext.jsx';
 import './styles.css';
@@ -16,7 +17,9 @@ loadConfig()
         <BrowserRouter>
           <AuthProvider>
             <ProfileProvider>
-              <App />
+              <DialogsProvider>
+                <App />
+              </DialogsProvider>
             </ProfileProvider>
           </AuthProvider>
         </BrowserRouter>

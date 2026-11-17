@@ -25,19 +25,26 @@ def test_new_book_is_available():
 
 
 def test_edit_keeps_status_unless_changed():
-    reserved = _book("a", status="reserved")
-    assert Book.from_input("a", BOOK, existing=reserved).status == "reserved"
-    assert Book.from_input("a", {**BOOK, "status": "given"}, existing=reserved).status == "given"
+    given = _book("a", status="given")
+    assert Book.from_input("a", BOOK, existing=given).status == "given"
+    assert (
+        Book.from_input("a", {**BOOK, "status": "available"}, existing=given).status == "available"
+    )
 
 
-def test_bad_status():
+@pytest.mark.parametrize("status", ["lost", "reserved"])
+def test_bad_status(status):
     with pytest.raises(ValidationError):
-        _book("a", status="lost")
+        _book("a", status=status)
 
 
-def test_old_items_without_status_are_available():
+@pytest.mark.parametrize("old", [None, "reserved"])
+def test_old_items_are_available(old):
     item = _book("a").to_item()
-    del item["status"]
+    if old:
+        item["status"] = old
+    else:
+        del item["status"]
     assert Book.from_item(item).status == "available"
 
 
@@ -54,13 +61,13 @@ def test_given_books_leave_catalog_matching_and_public_profile(table, monkeypatc
         Profile.from_input("olia", "o@ucu.edu.ua", {"display_name": "Оля", "phone": "0971234567"})
     )
     books = BookRepository(table)
-    kept = _book("olia", title="Kept", status="reserved")
+    kept = _book("olia", title="Kept")
     gone = _book("olia", title="Gone", status="given")
     books.save(kept)
     books.save(gone)
 
     resp = catalog.list_handler(make_event(sub="me"), None)
-    assert {b["title"] for b in body_of(resp)["books"]} == {"Kept"}  # reserved stays visible
+    assert {b["title"] for b in body_of(resp)["books"]} == {"Kept"}
 
     resp = users.handler(make_event(sub="me", path={"id": "olia"}), None)
     assert {b["title"] for b in body_of(resp)["books"]} == {"Kept"}

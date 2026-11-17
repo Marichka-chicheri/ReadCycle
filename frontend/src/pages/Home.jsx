@@ -52,7 +52,7 @@ export default function Home() {
           title: book.title,
           author: book.author,
           genre: book.genre,
-          language: book.language,
+          // no language: "I want this book" usually means any translation
           cover_url: book.cover_url || '',
         }),
       });

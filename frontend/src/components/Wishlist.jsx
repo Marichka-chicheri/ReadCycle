@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
 import CatalogCard from './CatalogCard.jsx';
+import { useDialogs } from './Dialogs.jsx';
 import Modal from './Modal.jsx';
 import WishForm from './WishForm.jsx';
 
@@ -10,6 +11,7 @@ export default function Wishlist() {
   const [error, setError] = useState('');
   // dialog: null | { mode: 'add' } | { mode: 'edit', wish }
   const [dialog, setDialog] = useState(null);
+  const { notify } = useDialogs();
 
   useEffect(() => {
     api('/my/wishes')
@@ -40,7 +42,7 @@ export default function Wishlist() {
       setWishes((list) => list.filter((w) => w.wish_id !== wish.wish_id));
       close();
     } catch (e) {
-      window.alert(`Не вдалося видалити: ${e.message}`);
+      notify(`Не вдалося видалити: ${e.message}`);
     }
   };
 

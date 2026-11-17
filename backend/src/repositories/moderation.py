@@ -5,7 +5,6 @@ block:      pk=USER#<me>           sk=BLOCK#<other>             I blocked them
             pk=USER#<other>        sk=BLOCKEDBY#<me>            mirror: hiding works both ways
 complaint:  pk=REPORT#<type>#<id>  sk=BY#<reporter>             the complaint (gsi1pk="REPORT")
             pk=USER#<reporter>     sk=REPORTSENT#<iso>#<target> for the daily limit
-            pk=USER#<owner>        sk=COMPLAINT#<reporter>      distinct complainants per account
 """
 
 from datetime import UTC, datetime, timedelta
@@ -111,27 +110,12 @@ class ReportRepository:
                 "sk": f"REPORTSENT#{report.created_at}#{report.target_type}#{report.target_id}",
             }
         )
-        self._table.put_item(
-            Item={
-                "pk": user_pk(report.owner_id),
-                "sk": f"COMPLAINT#{report.reporter_id}",
-                "created_at": report.created_at,
-            }
-        )
 
     def sent_last_day(self, reporter_id: str) -> int:
         cutoff = (datetime.now(UTC) - timedelta(days=1)).isoformat(timespec="milliseconds")
         prefix = "REPORTSENT#"
         sent = _by_prefix(self._table, user_pk(reporter_id), prefix)
         return sum(1 for i in sent if i["sk"][len(prefix) :] >= cutoff)
-
-    def complainants(self, owner_id: str) -> int:
-        """How many different students have complained about this user or their books."""
-        return len(_by_prefix(self._table, user_pk(owner_id), "COMPLAINT#"))
-
-    def clear_complaints(self, owner_id: str) -> None:
-        for item in _by_prefix(self._table, user_pk(owner_id), "COMPLAINT#"):
-            self._table.delete_item(Key={"pk": item["pk"], "sk": item["sk"]})
 
     def open_reports(self) -> list[Report]:
         return [Report.from_item(i) for i in _by_index(self._table, "REPORT")]
@@ -140,9 +124,18 @@ class ReportRepository:
         items = _by_prefix(self._table, f"REPORT#{target_type}#{target_id}", "BY#")
         return [Report.from_item(i) for i in items]
 
-    def close(self, target_type: str, target_id: str, status: str, handled_by: str) -> int:
-        reports = [r for r in self.for_target(target_type, target_id) if r.status == STATUS_OPEN]
+    def _close_all(self, reports: list[Report], status: str, handled_by: str) -> int:
         for r in reports:
             r.status, r.handled_by = status, handled_by
-            self._table.put_item(Item=r.to_item())
+            self._table.put_item(Item=r.to_item())  # moves it to REPORT_DONE: kept as history
         return len(reports)
+
+    def close(self, target_type: str, target_id: str, status: str, handled_by: str) -> int:
+        """Close the open complaints about one book or one user."""
+        reports = [r for r in self.for_target(target_type, target_id) if r.status == STATUS_OPEN]
+        return self._close_all(reports, status, handled_by)
+
+    def close_for_owner(self, owner_id: str, status: str, handled_by: str) -> int:
+        """Close every open complaint about this student: about them and about their books."""
+        reports = [r for r in self.open_reports() if r.owner_id == owner_id]
+        return self._close_all(reports, status, handled_by)

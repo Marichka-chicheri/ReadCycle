@@ -2,9 +2,11 @@
 
 GET    /mod/reports          — open complaints grouped by target, most complained first
 POST   /mod/reports/resolve  — {target_type, target_id, action: dismiss | remove_book | ban_user}
+                             dismiss and ban_user close ALL open complaints about that student;
+                             remove_book closes only the complaints about that book
 GET    /mod/bans             — suspended accounts
 POST   /mod/bans/{id}        — suspend an account  {reason}
-DELETE /mod/bans/{id}        — lift a suspension (earlier complaints are forgotten)
+DELETE /mod/bans/{id}        — lift a suspension
 """
 
 from collections import defaultdict
@@ -89,9 +91,8 @@ def resolve_handler(event, context):
         raise ApiError(404, "NOT_FOUND", "Скарги не знайдено")
     owner_id = group[0].owner_id
 
-    if action == "dismiss":
-        reports.close(target_type, target_id, STATUS_DISMISSED, email)
-        reports.clear_complaints(owner_id)  # dismissed complaints must not add up to a ban later
+    if action == "dismiss":  # nothing wrong with this student: all claims against them go away
+        reports.close_for_owner(owner_id, STATUS_DISMISSED, email)
         return {"resolved": "dismissed"}
 
     if action == "remove_book":
@@ -101,10 +102,11 @@ def resolve_handler(event, context):
         if book:
             books.delete(owner_id, target_id)
             forget_photos(book.photo_keys())
-    else:  # ban_user
+        reports.close(target_type, target_id, STATUS_ACTED, email)
+    else:  # ban_user: the decision covers everything reported about this student
         if not bans.get(owner_id):
             bans.save(Ban.create(owner_id, email, "Рішення модератора"))
-    reports.close(target_type, target_id, STATUS_ACTED, email)
+        reports.close_for_owner(owner_id, STATUS_ACTED, email)
     return {"resolved": "acted"}
 
 
@@ -117,7 +119,6 @@ def bans_handler(event, context):
             {
                 **b.__dict__,
                 "display_name": _name(profiles, b.user_id),
-                "auto": b.banned_by == "auto",
             }
             for b in bans.all()
         ]
@@ -149,7 +150,5 @@ def ban_handler(event, context):
 def unban_handler(event, context):
     require_moderator(event)
     user_id = _user_id(event)
-    reports, bans, _, _ = get_repos()
-    bans.delete(user_id)
-    reports.clear_complaints(user_id)  # otherwise the next complaint would ban them again at once
+    get_repos()[1].delete(user_id)
     return {"unbanned": user_id}

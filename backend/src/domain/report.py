@@ -26,9 +26,9 @@ STATUS_OPEN = "open"
 STATUS_DISMISSED = "dismissed"  # moderator: nothing wrong
 STATUS_ACTED = "acted"  # moderator: book removed / account banned
 
-# Limits against abuse of the complaint form itself.
-MAX_REPORTS_PER_DAY = 5  # one student cannot flood moderators
-AUTO_BAN_COMPLAINANTS = 3  # this many different students complaining -> account is suspended
+# Limit against abuse of the complaint form itself: one student cannot flood moderators.
+# Complaints never block anyone by themselves: only a moderator decides.
+MAX_REPORTS_PER_DAY = 5
 
 
 @dataclass

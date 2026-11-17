@@ -6,7 +6,7 @@ from conftest import body_of, make_event
 from domain.ban import Ban
 from domain.book import Book
 from domain.profile import Profile
-from domain.report import AUTO_BAN_COMPLAINANTS, MAX_REPORTS_PER_DAY
+from domain.report import MAX_REPORTS_PER_DAY
 from domain.wish import Wish
 from handlers import blocks, catalog, matches, moderator, my_books, profile, reports, users
 from repositories.books import BookRepository
@@ -54,7 +54,7 @@ def report(sub, target="bad", reason="spam", **extra):
     return call(reports.create_handler, sub=sub, body=body)
 
 
-# ----- complaint limits and automatic suspension -----
+# ----- complaint limit -----
 
 
 def test_daily_limit(env):
@@ -65,34 +65,21 @@ def test_daily_limit(env):
     assert status == 429 and body["error"]["code"] == "TOO_MANY_REPORTS"
 
 
-def test_enough_different_students_suspend_the_account(env):
-    for uid in ("x1", "x2", "x3")[: AUTO_BAN_COMPLAINANTS - 1]:
-        report(uid)
-    assert BanRepository(env).get("bad") is None
-    report("x3")
-    ban = BanRepository(env).get("bad")
-    assert ban and ban.banned_by == "auto"
-
-
-def test_same_student_complaining_twice_does_not_add_up(env):
-    for _ in range(AUTO_BAN_COMPLAINANTS + 1):
-        report("x1")
-    assert BanRepository(env).get("bad") is None
-
-
-def test_book_complaints_count_towards_the_owner(env):
+def test_complaints_never_ban_by_themselves(env):
     book_id = BookRepository(env).list_by_owner("bad")[0].book_id
-    for uid in ("x1", "x2", "x3"):
+    for uid in ("x1", "x2", "x3", "x4", "x5", "x6"):
+        report(uid)
         body = {"target_type": "book", "target_id": book_id, "owner_id": "bad", "reason": "spam"}
         assert call(reports.create_handler, sub=uid, body=body)[0] == 200
-    assert BanRepository(env).get("bad")
+    assert BanRepository(env).get("bad") is None  # only a moderator decides
+    assert len(call(catalog.list_handler)[1]["books"]) == 1
 
 
 # ----- what a ban does -----
 
 
 def test_banned_account_is_hidden_and_read_only(env):
-    BanRepository(env).save(Ban.create("bad", "auto", "x"))
+    BanRepository(env).save(Ban.create("bad", MOD, "x"))
     assert call(catalog.list_handler)[1]["books"] == []
     assert call(users.handler, path={"id": "bad"})[0] == 404
     status, body = call(my_books.create_handler, sub="bad", body={**BOOK, "title": "New"})
@@ -103,7 +90,7 @@ def test_banned_account_is_hidden_and_read_only(env):
 
 
 def test_banned_user_sees_the_flag_on_profile(env):
-    BanRepository(env).save(Ban.create("bad", "auto"))
+    BanRepository(env).save(Ban.create("bad", MOD))
     assert call(profile.get_handler, sub="bad")[1]["banned"] is True
     assert call(profile.get_handler)[1]["banned"] is False
 
@@ -111,7 +98,7 @@ def test_banned_user_sees_the_flag_on_profile(env):
 def test_matches_skip_banned_accounts(env):
     WishRepository(env).save(Wish.from_input("me", {"kind": "genre", "genre": "scifi"}))
     assert len(call(matches.handler)[1]["matches"]) == 1
-    BanRepository(env).save(Ban.create("bad", "auto"))
+    BanRepository(env).save(Ban.create("bad", MOD))
     assert call(matches.handler)[1]["matches"] == []
 
 
@@ -152,17 +139,23 @@ def test_only_moderators_get_in(env):
     assert call(profile.get_handler)[1]["moderator"] is False
 
 
-def test_reports_are_grouped_and_dismiss_forgets_them(env):
+def test_reports_are_grouped_and_dismiss_forgets_all_claims_against_the_student(env):
     report("x1", reason="other", comment="rude")
     report("x2", reason="scam")
-    group = _mod(moderator.reports_handler)[1]["groups"][0]
+    book_id = BookRepository(env).list_by_owner("bad")[0].book_id
+    body = {"target_type": "book", "target_id": book_id, "owner_id": "bad", "reason": "spam"}
+    call(reports.create_handler, sub="x3", body=body)
+    report("x4", target="olia")  # someone else: stays
+    groups = _mod(moderator.reports_handler)[1]["groups"]
+    group = groups[0]
     assert (group["target_id"], group["count"], group["owner_name"]) == ("bad", 2, "bad")
     assert {r["reason"] for r in group["reports"]} == {"other", "scam"}
+    assert len(groups) == 3
 
     body = {"target_type": "user", "target_id": "bad", "action": "dismiss"}
     assert _mod(moderator.resolve_handler, body=body)[0] == 200
-    assert _mod(moderator.reports_handler)[1]["groups"] == []
-    report("x3")  # dismissed complaints must not add up to an automatic ban later
+    left = _mod(moderator.reports_handler)[1]["groups"]
+    assert [g["target_id"] for g in left] == ["olia"]  # the book complaint went too
     assert BanRepository(env).get("bad") is None
 
 
@@ -179,6 +172,7 @@ def test_moderator_removes_book_or_bans_user(env):
     resolve = {"target_type": "user", "target_id": "bad", "action": "ban_user"}
     assert _mod(moderator.resolve_handler, body=resolve)[0] == 200
     assert BanRepository(env).get("bad").banned_by == MOD
+    assert _mod(moderator.reports_handler)[1]["groups"] == []
 
 
 def test_bad_resolve_requests(env):
@@ -192,7 +186,7 @@ def test_bad_resolve_requests(env):
 def test_ban_list_ban_and_unban(env):
     assert _mod(moderator.ban_handler, path={"id": "bad"}, body={"reason": "scam"})[0] == 200
     bans = _mod(moderator.bans_handler)[1]["bans"]
-    assert [(b["user_id"], b["reason"], b["auto"]) for b in bans] == [("bad", "scam", False)]
+    assert [(b["user_id"], b["reason"]) for b in bans] == [("bad", "scam")]
     assert _mod(moderator.ban_handler, path={"id": "ghost"})[0] == 404
     assert call(moderator.ban_handler, sub="me", path={"id": "bad"})[0] == 403
 

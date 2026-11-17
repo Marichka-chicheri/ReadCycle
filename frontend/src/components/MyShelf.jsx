@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
-import { STATUSES } from '../genres.js';
 import BookDetails from './BookDetails.jsx';
 import BookForm from './BookForm.jsx';
 import { Shelf, chunk } from './Bookshelf.jsx';
+import { useDialogs } from './Dialogs.jsx';
 import Modal from './Modal.jsx';
 
 const PER_SHELF = 18;
@@ -14,6 +14,7 @@ export default function MyShelf() {
   const [error, setError] = useState('');
   // dialog: null | { mode: 'add' } | { mode: 'view', book } | { mode: 'edit', book }
   const [dialog, setDialog] = useState(null);
+  const { confirm, notify } = useDialogs();
 
   const load = () =>
     api('/my/books')
@@ -44,7 +45,7 @@ export default function MyShelf() {
     setDialog({ mode: 'view', book });
   };
 
-  // Available / reserved / given: one click, the rest of the book stays as it is.
+  // On the shelf / given away: one click, the rest of the book stays as it is.
   const setStatus = async (book, status) => {
     try {
       const { book: saved } = await api(`/my/books/${book.book_id}`, {
@@ -54,23 +55,34 @@ export default function MyShelf() {
       setBooks((list) => list.map((b) => (b.book_id === saved.book_id ? saved : b)));
       setDialog({ mode: 'view', book: saved });
     } catch (e) {
-      window.alert(`Не вдалося змінити статус: ${e.message}`);
+      notify(`Не вдалося змінити статус: ${e.message}`);
     }
   };
 
   const remove = async (book) => {
-    if (!window.confirm(`Прибрати «${book.title}» з полиці?`)) return;
+    const ok = await confirm({
+      title: `Прибрати «${book.title}» з полиці?`,
+      message:
+        book.status === 'given'
+          ? 'Книга зникне з вашої полиці назавжди.'
+          : 'Книга зникне назавжди. Якщо ви її комусь віддали, краще натисніть «Книгу віддано»: вона лишиться на полиці напівпрозорою.',
+      confirmLabel: 'Прибрати',
+      danger: true,
+    });
+    if (!ok) return;
     try {
       await api(`/my/books/${book.book_id}`, { method: 'DELETE' });
       setBooks((list) => list.filter((b) => b.book_id !== book.book_id));
       close();
     } catch (e) {
-      window.alert(`Не вдалося видалити: ${e.message}`);
+      notify(`Не вдалося видалити: ${e.message}`);
     }
   };
 
   const shelves = books && books.length ? chunk(books, PER_SHELF) : [[]];
-  const giveCount = books?.filter((b) => b.offer === 'give').length || 0;
+  const onShelf = books?.filter((b) => b.status !== 'given') || [];
+  const giveCount = onShelf.filter((b) => b.offer === 'give').length;
+  const givenCount = (books?.length || 0) - onShelf.length;
 
   return (
     <>
@@ -79,8 +91,9 @@ export default function MyShelf() {
         <span className="muted">
           {books === null
             ? 'Завантаження…'
-            : `${books.length} ${plural(books.length, 'книга', 'книги', 'книг')}` +
-              (giveCount ? ` · ${giveCount} віддаю безкоштовно` : '')}
+            : `${onShelf.length} ${plural(onShelf.length, 'книга', 'книги', 'книг')}` +
+              (giveCount ? ` · ${giveCount} віддаю безкоштовно` : '') +
+              (givenCount ? ` · ${givenCount} вже віддано` : '')}
         </span>
         <button className="section-head__action" onClick={() => setDialog({ mode: 'add' })}>
           + Додати книгу
@@ -106,7 +119,8 @@ export default function MyShelf() {
         {books?.length > 0 && (
           <p className="wall__legend">
             <span className="legend-ribbon" aria-hidden="true" /> закладка — віддаю безкоштовно ·
-            натисни на корінець, щоб відкрити книгу
+            {givenCount > 0 && ' напівпрозорі — вже віддані ·'} натисни на корінець, щоб відкрити
+            книгу
           </p>
         )}
       </div>
@@ -139,27 +153,29 @@ export default function MyShelf() {
       {dialog?.mode === 'view' && (
         <Modal onClose={close} wide>
           <BookDetails book={dialog.book}>
-            <div className="status-picker" role="radiogroup" aria-label="Статус книги">
-              {STATUSES.map(([code, label]) => (
-                <button
-                  key={code}
-                  type="button"
-                  role="radio"
-                  aria-checked={(dialog.book.status || 'available') === code}
-                  className={`offer-option${
-                    (dialog.book.status || 'available') === code ? ' offer-option--on' : ''
-                  }`}
-                  onClick={() => setStatus(dialog.book, code)}
-                >
-                  <strong>{label}</strong>
+            {dialog.book.status === 'given' ? (
+              <>
+                <p className="muted status-hint">
+                  Книгу віддано: її не видно в шафі й підборі обміну, а на вашій полиці вона
+                  напівпрозора.
+                </p>
+                <button onClick={() => setStatus(dialog.book, 'available')}>
+                  Повернути на полицю
                 </button>
-              ))}
-            </div>
-            <p className="muted status-hint">
-              Коли книгу віддано, познач її «Віддана»: вона зникне з каталогу та підбору обміну, але
-              залишиться на твоїй полиці.
-            </p>
-            <button onClick={() => setDialog({ mode: 'edit', book: dialog.book })}>
+              </>
+            ) : (
+              <>
+                <p className="muted status-hint">
+                  Віддали книгу? Позначте це, і вона зникне з шафи та підбору обміну, щоб вам більше
+                  не писали про неї.
+                </p>
+                <button onClick={() => setStatus(dialog.book, 'given')}>Книгу віддано</button>
+              </>
+            )}
+            <button
+              className="btn--ghost"
+              onClick={() => setDialog({ mode: 'edit', book: dialog.book })}
+            >
               Редагувати
             </button>
             <button className="btn--ghost" onClick={() => remove(dialog.book)}>
