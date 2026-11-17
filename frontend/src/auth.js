@@ -30,6 +30,8 @@ export function friendlyError(err) {
   const domain = getConfig().allowedEmailDomain;
   if (msg.includes('EMAIL_DOMAIN_NOT_ALLOWED'))
     return `Реєстрація можлива лише з університетською поштою @${domain}.`;
+  if (msg.includes('EMAIL_BANNED'))
+    return 'Акаунт з цією поштою заблоковано модератором. Якщо це помилка, напишіть адміністраторам ReadCycle.';
   switch (err?.code) {
     case 'UsernameExistsException':
       return 'Користувач з цією поштою вже існує.';
@@ -53,7 +55,9 @@ export function friendlyError(err) {
 export function signUp(email, password) {
   return new Promise((resolve, reject) => {
     const attrs = [new CognitoUserAttribute({ Name: 'email', Value: email })];
-    userPool().signUp(email, password, attrs, null, (err, res) => (err ? reject(err) : resolve(res)));
+    userPool().signUp(email, password, attrs, null, (err, res) =>
+      err ? reject(err) : resolve(res),
+    );
   });
 }
 
@@ -99,6 +103,18 @@ export function signIn(email, password) {
 
 export function signOut() {
   userPool().getCurrentUser()?.signOut();
+}
+
+// Deletes the signed-in user's Cognito account (after the API has deleted their data).
+export function deleteCurrentUser() {
+  return new Promise((resolve, reject) => {
+    const user = userPool().getCurrentUser();
+    if (!user) return resolve();
+    user.getSession((err) => {
+      if (err) return reject(err);
+      user.deleteUser((e) => (e ? reject(e) : resolve()));
+    });
+  });
 }
 
 // Returns a valid session (refreshing tokens if needed) or null.

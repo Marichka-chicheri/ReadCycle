@@ -172,6 +172,7 @@ def test_moderator_removes_book_or_bans_user(env):
     resolve = {"target_type": "user", "target_id": "bad", "action": "ban_user"}
     assert _mod(moderator.resolve_handler, body=resolve)[0] == 200
     assert BanRepository(env).get("bad").banned_by == MOD
+    assert BanRepository(env).is_email_banned("BAD@ucu.edu.ua")
     assert _mod(moderator.reports_handler)[1]["groups"] == []
 
 
@@ -190,6 +191,9 @@ def test_ban_list_ban_and_unban(env):
     assert _mod(moderator.ban_handler, path={"id": "ghost"})[0] == 404
     assert call(moderator.ban_handler, sub="me", path={"id": "bad"})[0] == 403
 
+    assert BanRepository(env).is_email_banned("bad@ucu.edu.ua")  # no new account with it
+
     assert _mod(moderator.unban_handler, path={"id": "bad"})[0] == 200
     assert BanRepository(env).get("bad") is None
+    assert not BanRepository(env).is_email_banned("bad@ucu.edu.ua")
     assert len(call(catalog.list_handler)[1]["books"]) == 1

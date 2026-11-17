@@ -76,8 +76,9 @@ export default function UserProfile() {
         <div className="card profile__details">
           <AboutBlock profile={profile} emptyAbout="Про себе нічого не написано." />
           <p className="contact-hint">
-            Напиши в Telegram, подзвони чи надішли листа: домовтеся, які книги обміняти і де
-            зустрітися на кампусі.
+            {profile.contacts_hidden
+              ? 'Контакти видно лише тим, з ким є збіг. Натисніть «Хочу» на книзі з цієї полиці — і зможете написати.'
+              : 'Напиши в Telegram чи подзвони: домовтеся, які книги обміняти і де зустрітися на кампусі.'}
           </p>
           <div className="form-actions">
             <button type="button" className="btn--ghost btn--small" onClick={block}>

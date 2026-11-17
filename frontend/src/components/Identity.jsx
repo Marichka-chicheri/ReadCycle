@@ -14,6 +14,11 @@ export function IdentityCard({ profile }) {
         ❦
       </span>
       <ul className="contact-list">
+        {profile.contacts_hidden && (
+          <li className="contact-list__hidden">
+            Контакти з’являться, коли у вас буде збіг: додайте до вішліста книгу з цієї полиці
+          </li>
+        )}
         {profile.telegram && (
           <li>
             <span>Telegram</span>
@@ -28,10 +33,12 @@ export function IdentityCard({ profile }) {
             <a href={`tel:${profile.phone}`}>{profile.phone}</a>
           </li>
         )}
-        <li>
-          <span>Пошта</span>
-          <a href={`mailto:${profile.email}`}>{profile.email}</a>
-        </li>
+        {profile.email && (
+          <li>
+            <span>Пошта</span>
+            <a href={`mailto:${profile.email}`}>{profile.email}</a>
+          </li>
+        )}
       </ul>
     </aside>
   );

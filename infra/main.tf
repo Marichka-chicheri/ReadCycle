@@ -10,6 +10,7 @@ locals {
     me               = { route_key = "GET /me", handler = "handlers.me.handler", auth = true }
     profile_get      = { route_key = "GET /profile", handler = "handlers.profile.get_handler", auth = true }
     profile_put      = { route_key = "PUT /profile", handler = "handlers.profile.put_handler", auth = true }
+    profile_delete   = { route_key = "DELETE /profile", handler = "handlers.profile.delete_handler", auth = true, rate = 1 }
     my_books_list    = { route_key = "GET /my/books", handler = "handlers.my_books.list_handler", auth = true }
     my_books_create  = { route_key = "POST /my/books", handler = "handlers.my_books.create_handler", auth = true }
     my_books_update  = { route_key = "PUT /my/books/{id}", handler = "handlers.my_books.update_handler", auth = true }
@@ -20,10 +21,10 @@ locals {
     my_wishes_delete = { route_key = "DELETE /my/wishes/{id}", handler = "handlers.my_wishes.delete_handler", auth = true }
     catalog_list     = { route_key = "GET /books", handler = "handlers.catalog.list_handler", auth = true }
     matches          = { route_key = "GET /matches", handler = "handlers.matches.handler", auth = true }
-    user_get         = { route_key = "GET /users/{id}", handler = "handlers.users.handler", auth = true }
+    user_get         = { route_key = "GET /users/{id}", handler = "handlers.users.handler", auth = true, rate = 5 }
     uploads_create   = { route_key = "POST /uploads", handler = "handlers.uploads.handler", auth = true }
-    covers_search    = { route_key = "GET /covers/search", handler = "handlers.covers.handler", auth = true }
-    books_lookup     = { route_key = "GET /books/lookup", handler = "handlers.book_lookup.handler", auth = true }
+    covers_search    = { route_key = "GET /covers/search", handler = "handlers.covers.handler", auth = true, rate = 3 }
+    books_lookup     = { route_key = "GET /books/lookup", handler = "handlers.book_lookup.handler", auth = true, rate = 3 }
     reports_create   = { route_key = "POST /reports", handler = "handlers.reports.create_handler", auth = true }
     blocks_list      = { route_key = "GET /my/blocks", handler = "handlers.blocks.list_handler", auth = true }
     block_put        = { route_key = "PUT /blocks/{id}", handler = "handlers.blocks.block_handler", auth = true }
@@ -69,6 +70,8 @@ module "auth" {
   allowed_email_domain = var.allowed_email_domain
   lambda_zip           = data.archive_file.backend.output_path
   lambda_zip_hash      = data.archive_file.backend.output_base64sha256
+  table_name           = module.data.table_name
+  table_arn            = module.data.table_arn
 }
 
 module "api" {

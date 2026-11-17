@@ -32,8 +32,11 @@ class FakeTable:
             ]
             found.sort(key=lambda i: i["gsi1sk"], reverse=not kwargs.get("ScanIndexForward", True))
             return {"Items": found}
-        assert KeyConditionExpression == "pk = :pk AND begins_with(sk, :prefix)"
-        pk, prefix = ExpressionAttributeValues[":pk"], ExpressionAttributeValues[":prefix"]
+        if KeyConditionExpression == "pk = :pk":  # a whole partition (account deletion)
+            pk, prefix = ExpressionAttributeValues[":pk"], ""
+        else:
+            assert KeyConditionExpression == "pk = :pk AND begins_with(sk, :prefix)"
+            pk, prefix = ExpressionAttributeValues[":pk"], ExpressionAttributeValues[":prefix"]
         found = [
             dict(item)
             for (ipk, isk), item in sorted(self.items.items())

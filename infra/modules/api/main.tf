@@ -19,6 +19,17 @@ resource "aws_apigatewayv2_stage" "default" {
     throttling_burst_limit = 50
     throttling_rate_limit  = 20
   }
+  # Tighter limits for routes that are worth abusing: opening profiles one by one, or burning
+  # the Google Books quota. HTTP APIs limit the route as a whole (not per student).
+  dynamic "route_settings" {
+    for_each = { for k, r in var.routes : r.route_key => r.rate if r.rate != null }
+    content {
+      route_key              = route_settings.key
+      throttling_rate_limit  = route_settings.value
+      throttling_burst_limit = route_settings.value * 2
+    }
+  }
+  depends_on = [aws_apigatewayv2_route.route]
 }
 
 resource "aws_apigatewayv2_authorizer" "cognito" {

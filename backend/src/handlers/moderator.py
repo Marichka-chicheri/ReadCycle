@@ -85,7 +85,7 @@ def resolve_handler(event, context):
     if target_type not in TARGETS or not target_id or action not in ACTIONS:
         raise ApiError(400, "BAD_REQUEST", "Невірні параметри")
 
-    reports, bans, books, _ = get_repos()
+    reports, bans, books, profiles = get_repos()
     group = reports.for_target(target_type, target_id)
     if not group:
         raise ApiError(404, "NOT_FOUND", "Скарги не знайдено")
@@ -105,7 +105,9 @@ def resolve_handler(event, context):
         reports.close(target_type, target_id, STATUS_ACTED, email)
     else:  # ban_user: the decision covers everything reported about this student
         if not bans.get(owner_id):
-            bans.save(Ban.create(owner_id, email, "Рішення модератора"))
+            profile = profiles.get(owner_id)
+            student_email = profile.email if profile else ""
+            bans.save(Ban.create(owner_id, email, "Рішення модератора", student_email))
         reports.close_for_owner(owner_id, STATUS_ACTED, email)
     return {"resolved": "acted"}
 
@@ -139,10 +141,11 @@ def ban_handler(event, context):
     if user_id == me:
         raise ApiError(400, "OWN_ITEM", "Не можна заблокувати себе")
     _, bans, _, profiles = get_repos()
-    if not profiles.get(user_id):
+    profile = profiles.get(user_id)
+    if not profile:
         raise ApiError(404, "NOT_FOUND", "Профіль не знайдено")
     reason = str(json_body(event).get("reason") or "")
-    bans.save(Ban.create(user_id, email, reason or "Рішення модератора"))
+    bans.save(Ban.create(user_id, email, reason or "Рішення модератора", profile.email))
     return {"banned": user_id}
 
 

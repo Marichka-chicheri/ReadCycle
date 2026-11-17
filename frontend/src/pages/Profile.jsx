@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { api } from '../api.js';
+import { useAuth } from '../AuthContext.jsx';
+import { useDialogs } from '../components/Dialogs.jsx';
 import { AboutBlock, IdentityCard } from '../components/Identity.jsx';
 import BlockedUsers from '../components/BlockedUsers.jsx';
 import MyShelf from '../components/MyShelf.jsx';
@@ -61,6 +65,48 @@ export default function Profile() {
       <MyShelf />
       <Wishlist />
       <BlockedUsers />
+      <DeleteAccount />
     </section>
+  );
+}
+
+// Deleting the account: the API removes the data, then the browser removes the sign-in.
+function DeleteAccount() {
+  const { deleteSignIn } = useAuth();
+  const { confirm, notify } = useDialogs();
+  const navigate = useNavigate();
+  const [busy, setBusy] = useState(false);
+
+  const run = async () => {
+    const ok = await confirm({
+      title: 'Видалити акаунт назавжди?',
+      message:
+        'Зникнуть профіль, фото, усі книги з полиці та вішліст. Повернути їх не вийде. Зареєструватися знову з цією поштою можна буде будь-коли.',
+      confirmLabel: 'Видалити акаунт',
+      danger: true,
+    });
+    if (!ok) return;
+    setBusy(true);
+    try {
+      await api('/profile', { method: 'DELETE' });
+    } catch (e) {
+      setBusy(false);
+      notify(`Не вдалося видалити акаунт: ${e.message}`);
+      return;
+    }
+    try {
+      await deleteSignIn();
+    } catch {
+      // the data is already gone; the sign-in itself will simply lead to a fresh onboarding
+    }
+    navigate('/login', { replace: true });
+  };
+
+  return (
+    <div className="danger-zone">
+      <button type="button" className="link-button" onClick={run} disabled={busy}>
+        {busy ? 'Видаляємо…' : 'Видалити акаунт'}
+      </button>
+    </div>
   );
 }

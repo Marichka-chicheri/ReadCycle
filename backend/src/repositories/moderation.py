@@ -1,6 +1,7 @@
 """Bans, blocks and complaints. Key layout (all in the main table):
 
 ban:        pk=USER#<id>           sk=BAN                       (gsi1pk="BAN")
+            pk=BANNED_EMAIL#<email> sk=BAN                      no new sign-up with this email
 block:      pk=USER#<me>           sk=BLOCK#<other>             I blocked them
             pk=USER#<other>        sk=BLOCKEDBY#<me>            mirror: hiding works both ways
 complaint:  pk=REPORT#<type>#<id>  sk=BY#<reporter>             the complaint (gsi1pk="REPORT")
@@ -10,7 +11,7 @@ complaint:  pk=REPORT#<type>#<id>  sk=BY#<reporter>             the complaint (g
 from datetime import UTC, datetime, timedelta
 
 from common.db import CATALOG_INDEX, user_pk
-from domain.ban import Ban
+from domain.ban import Ban, banned_email_pk, normalize_email
 from domain.profile import now_iso
 from domain.report import STATUS_OPEN, Report
 
@@ -59,9 +60,20 @@ class BanRepository:
 
     def save(self, ban: Ban) -> None:
         self._table.put_item(Item=ban.to_item())
+        if email_item := ban.email_item():
+            self._table.put_item(Item=email_item)
 
     def delete(self, user_id: str) -> None:
+        ban = self.get(user_id)
+        if ban and ban.email:
+            self._table.delete_item(Key={"pk": banned_email_pk(ban.email), "sk": "BAN"})
         self._table.delete_item(Key={"pk": user_pk(user_id), "sk": "BAN"})
+
+    def is_email_banned(self, email: str) -> bool:
+        if not normalize_email(email):
+            return False
+        key = {"pk": banned_email_pk(email), "sk": "BAN"}
+        return "Item" in self._table.get_item(Key=key)
 
     def all(self) -> list[Ban]:
         return [Ban.from_item(i) for i in _by_index(self._table, "BAN")]

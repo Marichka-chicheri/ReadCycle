@@ -26,6 +26,11 @@ export function AuthProvider({ children }) {
       auth.signOut();
       setUser(null);
     },
+    deleteSignIn: async () => {
+      await auth.deleteCurrentUser();
+      auth.signOut();
+      setUser(null);
+    },
   };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

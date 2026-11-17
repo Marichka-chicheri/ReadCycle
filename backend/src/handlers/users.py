@@ -1,8 +1,11 @@
-"""GET /users/{id} — another student's public profile: contacts, shelf and wishlist."""
+"""GET /users/{id} — another student's public profile: shelf, wishlist and, only when the two of
+them have a match (see domain.matching), their contacts. So nobody can collect everyone's
+numbers by opening profiles one by one."""
 
 from common.db import main_table
 from common.http import ApiError, api_handler, current_user
 from common.moderation import hidden_users
+from domain.matching import find_matches
 from repositories.books import BookRepository
 from repositories.profiles import ProfileRepository
 from repositories.wishes import WishRepository
@@ -24,8 +27,16 @@ def handler(event, context):
         profile = None
     if not profile:
         raise ApiError(404, "NOT_FOUND", "Профіль не знайдено")
+    their_books, their_wishes = books.list_by_owner(user_id), wishes.list_by_owner(user_id)
+    matched = bool(
+        find_matches(
+            viewer_id,
+            their_books + books.list_by_owner(viewer_id),
+            their_wishes + wishes.list_by_owner(viewer_id),
+        )
+    )
     return {
-        "profile": profile.to_public_json(),
-        "books": [b.to_json() for b in books.list_by_owner(user_id) if not b.is_given],
-        "wishes": [w.to_json() for w in wishes.list_by_owner(user_id)],
+        "profile": profile.to_public_json(with_contacts=matched),
+        "books": [b.to_json() for b in their_books if not b.is_given],
+        "wishes": [w.to_json() for w in their_wishes],
     }

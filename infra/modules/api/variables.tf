@@ -3,11 +3,12 @@ variable "name" {
 }
 
 variable "routes" {
-  description = "Map of name => { route_key, handler, auth }"
+  description = "Map of name => { route_key, handler, auth, rate? } (rate: own requests/s limit)"
   type = map(object({
     route_key = string
     handler   = string
     auth      = bool
+    rate      = optional(number)
   }))
 }
 

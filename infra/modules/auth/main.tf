@@ -76,6 +76,20 @@ resource "aws_iam_role_policy_attachment" "pre_signup_logs" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
 
+# Read-only: the trigger only looks up BANNED_EMAIL#<email> items.
+resource "aws_iam_role_policy" "pre_signup_banned_emails" {
+  name = "${var.name}-pre-signup-banned-emails"
+  role = aws_iam_role.pre_signup.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["dynamodb:GetItem"]
+      Resource = var.table_arn
+    }]
+  })
+}
+
 resource "aws_cloudwatch_log_group" "pre_signup" {
   name              = "/aws/lambda/${var.name}-pre-signup"
   retention_in_days = 14
@@ -93,6 +107,7 @@ resource "aws_lambda_function" "pre_signup" {
   environment {
     variables = {
       ALLOWED_EMAIL_DOMAIN = var.allowed_email_domain
+      TABLE_NAME           = var.table_name
     }
   }
   depends_on = [aws_cloudwatch_log_group.pre_signup]

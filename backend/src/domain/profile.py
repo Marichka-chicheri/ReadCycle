@@ -55,6 +55,9 @@ class Profile:
     display_name: str
     telegram: str = ""
     phone: str = ""
+    show_phone: bool = (
+        False  # the number is shared only if the owner allows it (or has no Telegram)
+    )
     age: int | None = None
     about: str = ""
     favorite_genres: list[str] = field(default_factory=list)
@@ -125,6 +128,7 @@ class Profile:
             display_name=name,
             telegram=telegram,
             phone=phone,
+            show_phone=bool(data.get("show_phone")) and bool(phone),
             age=age,
             about=about,
             favorite_genres=genres,
@@ -150,6 +154,7 @@ class Profile:
             display_name=item["display_name"],
             telegram=item.get("telegram", ""),
             phone=item.get("phone", ""),
+            show_phone=bool(item.get("show_phone", False)),
             age=int(age) if age is not None else None,  # boto3 returns numbers as Decimal
             about=item.get("about", ""),
             favorite_genres=list(item.get("favorite_genres", [])),
@@ -171,10 +176,22 @@ class Profile:
         """Everything, for the owner of the profile."""
         return self._with_avatar(asdict(self))
 
-    def to_public_json(self) -> dict[str, Any]:
-        """What other signed-in students see: who it is and how to reach them."""
+    @property
+    def phone_visible(self) -> bool:
+        """Without Telegram the number is the only way to reach the person, so it is shared."""
+        return bool(self.phone) and (self.show_phone or not self.telegram)
+
+    def to_public_json(self, with_contacts: bool = False) -> dict[str, Any]:
+        """What another student sees. Contacts only for someone they have a match with
+        (`with_contacts`), and the phone only if the owner shares it. Never the email."""
         data = asdict(self)
-        del data["created_at"], data["updated_at"]
+        for private in ("email", "created_at", "updated_at", "show_phone"):
+            del data[private]
+        if not with_contacts:
+            data["telegram"] = data["phone"] = ""
+        elif not self.phone_visible:
+            data["phone"] = ""
+        data["contacts_hidden"] = not with_contacts
         return self._with_avatar(data)
 
     def to_summary_json(self) -> dict[str, Any]:

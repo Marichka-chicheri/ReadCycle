@@ -13,3 +13,12 @@ variable "lambda_zip" {
 variable "lambda_zip_hash" {
   type = string
 }
+
+variable "table_name" {
+  description = "Main DynamoDB table: the pre sign-up trigger checks banned emails in it"
+  type        = string
+}
+
+variable "table_arn" {
+  type = string
+}

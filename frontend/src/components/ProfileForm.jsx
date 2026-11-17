@@ -6,6 +6,7 @@ const EMPTY = {
   display_name: '',
   telegram: '',
   phone: '',
+  show_phone: false,
   age: '',
   about: '',
   favorite_genres: [],
@@ -92,6 +93,26 @@ export default function ProfileForm({
               </label>
             </div>
             {err('contacts')}
+            {data.phone && (
+              <label className="check">
+                <input
+                  type="checkbox"
+                  checked={!!data.show_phone}
+                  onChange={(e) => setData((d) => ({ ...d, show_phone: e.target.checked }))}
+                />
+                <span>
+                  Показувати номер тим, з ким є збіг
+                  <small>
+                    {data.telegram
+                      ? 'Інакше вони бачитимуть лише Telegram — так безпечніше.'
+                      : 'Без Telegram номер — єдиний спосіб зв’язатися, тож його побачать ті, з ким у вас збіг.'}
+                  </small>
+                </span>
+              </label>
+            )}
+            <p className="contacts__privacy">
+              Контакти бачать лише студенти, з якими у вас є збіг у підборі обміну.
+            </p>
           </div>
         </fieldset>
       )}
