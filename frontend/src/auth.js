@@ -71,6 +71,22 @@ export function resendCode(email) {
   });
 }
 
+// Password reset: Cognito emails a code, then the user sets a new password with it.
+export function forgotPassword(email) {
+  return new Promise((resolve, reject) => {
+    cognitoUser(email).forgotPassword({ onSuccess: resolve, onFailure: reject });
+  });
+}
+
+export function resetPassword(email, code, newPassword) {
+  return new Promise((resolve, reject) => {
+    cognitoUser(email).confirmPassword(code, newPassword, {
+      onSuccess: resolve,
+      onFailure: reject,
+    });
+  });
+}
+
 export function signIn(email, password) {
   return new Promise((resolve, reject) => {
     const details = new AuthenticationDetails({ Username: email, Password: password });

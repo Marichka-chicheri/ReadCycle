@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api.js';
+import { STATUSES } from '../genres.js';
 import BookDetails from './BookDetails.jsx';
 import BookForm from './BookForm.jsx';
 import { Shelf, chunk } from './Bookshelf.jsx';
@@ -26,7 +27,10 @@ export default function MyShelf() {
   const close = () => setDialog(null);
 
   const add = async (data) => {
-    const { book } = await api('/my/books', { method: 'POST', body: JSON.stringify(data) });
+    const { book } = await api('/my/books', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
     setBooks((list) => [...list, book]);
     close();
   };
@@ -38,6 +42,20 @@ export default function MyShelf() {
     });
     setBooks((list) => list.map((b) => (b.book_id === book.book_id ? book : b)));
     setDialog({ mode: 'view', book });
+  };
+
+  // Available / reserved / given: one click, the rest of the book stays as it is.
+  const setStatus = async (book, status) => {
+    try {
+      const { book: saved } = await api(`/my/books/${book.book_id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ ...book, status }),
+      });
+      setBooks((list) => list.map((b) => (b.book_id === saved.book_id ? saved : b)));
+      setDialog({ mode: 'view', book: saved });
+    } catch (e) {
+      window.alert(`Не вдалося змінити статус: ${e.message}`);
+    }
   };
 
   const remove = async (book) => {
@@ -121,6 +139,26 @@ export default function MyShelf() {
       {dialog?.mode === 'view' && (
         <Modal onClose={close} wide>
           <BookDetails book={dialog.book}>
+            <div className="status-picker" role="radiogroup" aria-label="Статус книги">
+              {STATUSES.map(([code, label]) => (
+                <button
+                  key={code}
+                  type="button"
+                  role="radio"
+                  aria-checked={(dialog.book.status || 'available') === code}
+                  className={`offer-option${
+                    (dialog.book.status || 'available') === code ? ' offer-option--on' : ''
+                  }`}
+                  onClick={() => setStatus(dialog.book, code)}
+                >
+                  <strong>{label}</strong>
+                </button>
+              ))}
+            </div>
+            <p className="muted status-hint">
+              Коли книгу віддано, познач її «Віддана»: вона зникне з каталогу та підбору обміну, але
+              залишиться на твоїй полиці.
+            </p>
             <button onClick={() => setDialog({ mode: 'edit', book: dialog.book })}>
               Редагувати
             </button>

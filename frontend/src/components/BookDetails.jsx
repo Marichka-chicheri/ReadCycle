@@ -1,4 +1,4 @@
-import { genreLabel, languageLabel, offerLabel } from '../genres.js';
+import { genreLabel, languageLabel, offerLabel, statusLabel } from '../genres.js';
 import BookCover from './BookCover.jsx';
 
 // Cover + facts about one book. `children` are the action buttons under it.
@@ -8,6 +8,11 @@ export default function BookDetails({ book, children }) {
       <BookCover title={book.title} author={book.author} src={book.cover_src} />
       <div className="book-view__info">
         <span className={`offer-badge offer-badge--${book.offer}`}>{offerLabel(book.offer)}</span>
+        {book.status && book.status !== 'available' && (
+          <span className={`offer-badge status-badge status-badge--${book.status}`}>
+            {statusLabel(book.status)}
+          </span>
+        )}
         <h2>{book.title}</h2>
         <p className="book-view__author">{book.author}</p>
         <dl className="facts">

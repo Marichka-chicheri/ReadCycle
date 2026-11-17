@@ -2779,3 +2779,48 @@ button,
   border-radius: 6px;
   box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
+
+/* ---------------- book status, wish button, complaints ---------------- */
+.form-actions {
+  flex-wrap: wrap;
+}
+.status-picker {
+  display: flex;
+  gap: 8px;
+  flex-basis: 100%;
+}
+.status-picker .offer-option {
+  flex: 1;
+  text-align: center;
+}
+.status-hint {
+  flex-basis: 100%;
+  margin: 0;
+}
+.status-badge {
+  margin-left: 6px;
+}
+.status-badge--reserved {
+  background: #e9d9a8;
+  color: var(--oak-deep);
+}
+.status-badge--given {
+  background: var(--ink-soft);
+  color: var(--cream-50);
+}
+.spine--reserved,
+.spine--given {
+  opacity: 0.6;
+  filter: saturate(0.5);
+}
+.wish-done {
+  margin: 0;
+}
+.report-link {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+.report-footer {
+  margin: 28px 0 0;
+  text-align: center;
+}

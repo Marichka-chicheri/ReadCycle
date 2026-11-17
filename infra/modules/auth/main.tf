@@ -29,8 +29,9 @@ resource "aws_cognito_user_pool" "main" {
 
   verification_message_template {
     default_email_option = "CONFIRM_WITH_CODE"
-    email_subject        = "ReadCycle: код підтвердження"
-    email_message        = "Ваш код підтвердження ReadCycle: {####}"
+    # the same template is used for the sign-up code and for the password-reset code
+    email_subject = "ReadCycle: ваш код"
+    email_message = "Ваш код ReadCycle: {####}. Якщо ви його не запитували, просто проігноруйте цей лист."
   }
 
   lambda_config {

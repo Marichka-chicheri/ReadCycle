@@ -39,6 +39,9 @@ export default function Login() {
         <span className="eyebrow">З поверненням</span>
         <h1>Вхід</h1>
         {location.state?.confirmed && <p className="ok">Пошту підтверджено. Увійдіть.</p>}
+        {location.state?.passwordChanged && (
+          <p className="ok">Пароль змінено. Увійдіть з новим паролем.</p>
+        )}
         <label>
           Пошта УКУ
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
@@ -54,6 +57,11 @@ export default function Login() {
         </label>
         {error && <p className="error">{error}</p>}
         <button disabled={busy}>Увійти</button>
+        <p>
+          <Link to="/forgot" state={{ email }}>
+            Забули пароль?
+          </Link>
+        </p>
         <p>
           Немає акаунта? <Link to="/register">Зареєструватися</Link>
         </p>

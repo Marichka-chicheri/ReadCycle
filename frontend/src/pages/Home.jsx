@@ -5,6 +5,7 @@ import BookDetails from '../components/BookDetails.jsx';
 import { Cabinet, Shelf, chunk } from '../components/Bookshelf.jsx';
 import CatalogFilters from '../components/CatalogFilters.jsx';
 import Modal from '../components/Modal.jsx';
+import ReportForm from '../components/ReportForm.jsx';
 
 const PER_SHELF = 20;
 const MIN_SHELVES = 3; // an almost empty cabinet still looks like a cabinet
@@ -22,6 +23,46 @@ export default function Home() {
   const [result, setResult] = useState(null); // { books, total }
   const [error, setError] = useState('');
   const [open, setOpen] = useState(null);
+  const [reporting, setReporting] = useState(null); // a book being complained about
+  const [wishes, setWishes] = useState([]);
+  const [wishBusy, setWishBusy] = useState(false);
+  const [wishError, setWishError] = useState('');
+
+  // own wishlist: tells which books already have a "Хочу"
+  useEffect(() => {
+    api('/my/wishes')
+      .then((r) => setWishes(r.wishes))
+      .catch(() => {});
+  }, []);
+
+  const wishKey = (title, author) => `${title}|${author}`.trim().toLowerCase();
+  const wished = (book) =>
+    wishes.some(
+      (w) => w.kind === 'book' && wishKey(w.title, w.author) === wishKey(book.title, book.author),
+    );
+
+  const want = async (book) => {
+    setWishError('');
+    setWishBusy(true);
+    try {
+      const { wish } = await api('/my/wishes', {
+        method: 'POST',
+        body: JSON.stringify({
+          kind: 'book',
+          title: book.title,
+          author: book.author,
+          genre: book.genre,
+          language: book.language,
+          cover_url: book.cover_url || '',
+        }),
+      });
+      setWishes((list) => [...list, wish]);
+    } catch (e) {
+      setWishError(e.message);
+    } finally {
+      setWishBusy(false);
+    }
+  };
 
   // Debounce typing in the search box; selects apply at once.
   const [q, setQ] = useState('');
@@ -107,12 +148,50 @@ export default function Home() {
       )}
 
       {open && (
-        <Modal onClose={() => setOpen(null)} wide>
+        <Modal
+          onClose={() => {
+            setOpen(null);
+            setWishError('');
+          }}
+          wide
+        >
           <BookDetails book={open}>
             <Link to={`/u/${open.owner_id}`} className="btn">
               Профіль і контакти
             </Link>
+            {wished(open) ? (
+              <span className="ok wish-done">✓ У твоєму вішлісті</span>
+            ) : (
+              <button className="btn--ghost" disabled={wishBusy} onClick={() => want(open)}>
+                Хочу цю книгу
+              </button>
+            )}
+            <button
+              type="button"
+              className="link report-link"
+              onClick={() => {
+                setReporting(open);
+                setOpen(null);
+              }}
+            >
+              Поскаржитись
+            </button>
+            {wishError && <p className="error status-hint">{wishError}</p>}
           </BookDetails>
+        </Modal>
+      )}
+
+      {reporting && (
+        <Modal title="Скарга на книгу" onClose={() => setReporting(null)}>
+          <ReportForm
+            subject={`«${reporting.title}» (з полиці: ${reporting.owner_name})`}
+            target={{
+              target_type: 'book',
+              target_id: reporting.book_id,
+              owner_id: reporting.owner_id,
+            }}
+            onDone={() => setReporting(null)}
+          />
         </Modal>
       )}
     </section>

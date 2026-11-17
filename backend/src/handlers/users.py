@@ -22,6 +22,6 @@ def handler(event, context):
         raise ApiError(404, "NOT_FOUND", "Профіль не знайдено")
     return {
         "profile": profile.to_public_json(),
-        "books": [b.to_json() for b in books.list_by_owner(user_id)],
+        "books": [b.to_json() for b in books.list_by_owner(user_id) if not b.is_given],
         "wishes": [w.to_json() for w in wishes.list_by_owner(user_id)],
     }

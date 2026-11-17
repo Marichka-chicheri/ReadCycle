@@ -24,7 +24,11 @@ def list_handler(event, context):
     flt = CatalogFilter.from_query(event.get("queryStringParameters"))
     catalog, profiles = get_repos()
 
-    found = [b for b in catalog.all_books() if b.owner_id != viewer_id and flt.matches(b)]
+    found = [
+        b
+        for b in catalog.all_books()
+        if b.owner_id != viewer_id and not b.is_given and flt.matches(b)
+    ]
     shown = found[:MAX_RESULTS]
 
     names: dict[str, str] = {}

@@ -133,6 +133,7 @@ class Match:
 
 def find_matches(viewer_id: str, books: list[Book], wishes: list[Wish]) -> list[Match]:
     """All matches for `viewer_id`, best first. `books`/`wishes` are everyone's (incl. viewer's)."""
+    books = [b for b in books if not b.is_given]  # given away: nothing to exchange any more
     my_books = [b for b in books if b.owner_id == viewer_id]
     my_wishes = [w for w in wishes if w.owner_id == viewer_id]
     their_books = [b for b in books if b.owner_id != viewer_id]

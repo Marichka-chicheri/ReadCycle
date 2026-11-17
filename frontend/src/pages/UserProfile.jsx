@@ -6,6 +6,7 @@ import { Shelf, chunk } from '../components/Bookshelf.jsx';
 import CatalogCard from '../components/CatalogCard.jsx';
 import { AboutBlock, IdentityCard } from '../components/Identity.jsx';
 import Modal from '../components/Modal.jsx';
+import ReportForm from '../components/ReportForm.jsx';
 import { useProfile } from '../ProfileContext.jsx';
 
 const PER_SHELF = 18;
@@ -18,6 +19,7 @@ export default function UserProfile() {
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [open, setOpen] = useState(null);
+  const [reporting, setReporting] = useState(false);
 
   useEffect(() => {
     setData(null);
@@ -96,9 +98,25 @@ export default function UserProfile() {
         </div>
       </div>
 
+      <p className="report-footer">
+        <button type="button" className="link report-link" onClick={() => setReporting(true)}>
+          Поскаржитись на цього користувача
+        </button>
+      </p>
+
       {open && (
         <Modal onClose={() => setOpen(null)} wide>
           <BookDetails book={open} />
+        </Modal>
+      )}
+
+      {reporting && (
+        <Modal title="Скарга на користувача" onClose={() => setReporting(false)}>
+          <ReportForm
+            subject={profile.display_name}
+            target={{ target_type: 'user', target_id: id }}
+            onDone={() => setReporting(false)}
+          />
         </Modal>
       )}
     </section>

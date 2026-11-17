@@ -3,7 +3,7 @@
 // Spines are drawn cloth bindings; hovering one shows a card with the real cover and details.
 
 import { useRef, useState } from 'react';
-import { genreLabel, offerLabel } from '../genres.js';
+import { genreLabel, offerLabel, statusLabel } from '../genres.js';
 import BookCover from './BookCover.jsx';
 import { spineStyle } from './spine.js';
 
@@ -13,6 +13,7 @@ export function BookSpine({
   title,
   author,
   offer,
+  status,
   lean = 0,
   onClick,
   selected = false,
@@ -26,6 +27,7 @@ export function BookSpine({
     'spine',
     s.light && 'spine--light',
     selected && 'spine--selected',
+    status && status !== 'available' && `spine--${status}`,
     onClick && 'spine--clickable',
   ]
     .filter(Boolean)
@@ -71,7 +73,11 @@ function Peek({ book, x, bottom }) {
         <strong>{book.title}</strong>
         <span>{book.author}</span>
         <small>
-          {[book.genre && genreLabel(book.genre), book.offer && offerLabel(book.offer)]
+          {[
+            book.genre && genreLabel(book.genre),
+            book.offer && offerLabel(book.offer),
+            book.status && book.status !== 'available' && statusLabel(book.status),
+          ]
             .filter(Boolean)
             .join(' · ')}
         </small>
@@ -106,6 +112,7 @@ export function Shelf({ books = [], variant = 'cabinet', empty, onBookClick, chi
             title={b.title}
             author={b.author}
             offer={b.offer}
+            status={b.status}
             // the last book on a shelf that is not full leans on its neighbour
             lean={i === books.length - 1 && books.length > 2 && books.length < 9 ? -6 : 0}
             onClick={onBookClick ? () => onBookClick(b) : undefined}

@@ -34,6 +34,11 @@ OFFER_GIVE = "give"  # віддам безкоштовно
 OFFER_EXCHANGE = "exchange"  # лише обмін
 OFFERS = (OFFER_GIVE, OFFER_EXCHANGE)
 
+STATUS_AVAILABLE = "available"  # доступна
+STATUS_RESERVED = "reserved"  # зарезервована: хтось домовляється, ще видно в каталозі
+STATUS_GIVEN = "given"  # віддана: зникає з каталогу й підбору обміну
+STATUSES = (STATUS_AVAILABLE, STATUS_RESERVED, STATUS_GIVEN)
+
 
 def clean_text(value: Any) -> str:
     return " ".join(str(value or "").split())
@@ -53,6 +58,7 @@ class Book:
     isbn: str = ""  # ISBN-10/13 digits only, "" if unknown
     cover_key: str = ""  # uploaded photo (S3 key under covers/<owner>/)
     cover_url: str = ""  # or a picture picked from cover search (Google Books / Open Library)
+    status: str = STATUS_AVAILABLE
     created_at: str = ""
     updated_at: str = ""
 
@@ -79,6 +85,11 @@ class Book:
         offer = str(data.get("offer") or "")
         if offer not in OFFERS:
             errors["offer"] = "Оберіть: віддам чи обміняю"
+
+        # an edit that does not mention the status keeps the current one
+        status = str(data.get("status") or (existing.status if existing else STATUS_AVAILABLE))
+        if status not in STATUSES:
+            errors["status"] = "Невідомий статус"
 
         description = str(data.get("description") or "").strip()
         if len(description) > DESCRIPTION_MAX:
@@ -119,6 +130,7 @@ class Book:
             isbn=isbn,
             cover_key=cover_key,
             cover_url=cover_url,
+            status=status,
             created_at=existing.created_at if existing else ts,
             updated_at=ts,
         )
@@ -139,7 +151,13 @@ class Book:
 
     @classmethod
     def from_item(cls, item: dict[str, Any]) -> Book:
-        return cls(**{f: item.get(f, "") for f in cls.__dataclass_fields__})
+        book = cls(**{f: item.get(f, "") for f in cls.__dataclass_fields__})
+        book.status = book.status or STATUS_AVAILABLE  # books saved before statuses existed
+        return book
+
+    @property
+    def is_given(self) -> bool:
+        return self.status == STATUS_GIVEN
 
     def photo_keys(self) -> set[str]:
         return {self.cover_key} if self.cover_key else set()

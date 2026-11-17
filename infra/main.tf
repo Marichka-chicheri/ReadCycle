@@ -24,6 +24,7 @@ locals {
     uploads_create   = { route_key = "POST /uploads", handler = "handlers.uploads.handler", auth = true }
     covers_search    = { route_key = "GET /covers/search", handler = "handlers.covers.handler", auth = true }
     books_lookup     = { route_key = "GET /books/lookup", handler = "handlers.book_lookup.handler", auth = true }
+    reports_create   = { route_key = "POST /reports", handler = "handlers.reports.create_handler", auth = true }
   }
 }
 

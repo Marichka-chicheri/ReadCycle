@@ -48,4 +48,20 @@ export const OFFERS = [
   ['exchange', 'Обміняю', 'хочу щось натомість'],
   ['give', 'Віддам', 'безкоштовно, просто забери'],
 ];
-export const offerLabel = (code) => OFFERS.find(([c]) => c === code)?.[1] || code;
+// Life of a book (backend/src/domain/book.py STATUSES). "given" books leave the catalog.
+export const STATUSES = [
+  ['available', 'Доступна'],
+  ['reserved', 'Зарезервована'],
+  ['given', 'Віддана'],
+];
+export const statusLabel = (code) => STATUSES.find(([c]) => c === code)?.[1] || code;
+
+// Why a student can complain (backend/src/domain/report.py REASONS).
+export const REPORT_REASONS = [
+  ['spam', 'Спам або реклама'],
+  ['inappropriate', 'Недоречний вміст'],
+  ['scam', 'Шахрайство або обман'],
+  ['other', 'Інше'],
+];
+
+export const offerLabel =(code) => OFFERS.find(([c]) => c === code)?.[1] || code;
