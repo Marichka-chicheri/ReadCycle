@@ -17,6 +17,7 @@ from common.genres import is_genre
 from common.http import ValidationError
 from common.languages import is_language
 from domain.book_metadata import normalize_isbn
+from domain.language_policy import is_russian_isbn, russian_fields
 from domain.media import KIND_COVER, is_allowed_cover_url, is_own_photo_key
 from domain.profile import now_iso
 
@@ -102,6 +103,13 @@ class Book:
         isbn = normalize_isbn(isbn_raw)
         if isbn_raw and not isbn:
             errors["isbn"] = "ISBN має 10 або 13 цифр"
+        elif isbn and is_russian_isbn(isbn):
+            errors["isbn"] = "Це ISBN російського видання: такі книги на ReadCycle не додаються"
+
+        for name, message in russian_fields(
+            title=title, author=author, description=description
+        ).items():
+            errors.setdefault(name, message)
 
         cover_key = str(data.get("cover_key") or "")
         cover_url = str(data.get("cover_url") or "").strip()

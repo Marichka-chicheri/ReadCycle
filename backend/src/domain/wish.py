@@ -17,6 +17,7 @@ from common.genres import is_genre
 from common.http import ValidationError
 from common.languages import is_language
 from domain.book import AUTHOR_MAX, TITLE_MAX, clean_text
+from domain.language_policy import russian_fields
 from domain.media import is_allowed_cover_url
 from domain.profile import now_iso
 
@@ -74,6 +75,9 @@ class Wish:
         note = str(data.get("note") or "").strip()
         if len(note) > NOTE_MAX:
             errors["note"] = f"Не більше {NOTE_MAX} символів"
+
+        for name, message in russian_fields(title=title, author=author, note=note).items():
+            errors.setdefault(name, message)
 
         if errors:
             raise ValidationError(errors)

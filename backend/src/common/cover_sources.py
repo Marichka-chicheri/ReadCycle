@@ -18,6 +18,9 @@ import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
+from domain.book_metadata import normalize_isbn
+from domain.language_policy import is_russian_book
+
 log = logging.getLogger(__name__)
 
 TIMEOUT_SECONDS = 4
@@ -52,11 +55,18 @@ def _google(query: str) -> list[dict]:
         link = links.get("thumbnail") or links.get("smallThumbnail")
         if not link:
             continue
+        ids = [normalize_isbn(i.get("identifier", "")) for i in v.get("industryIdentifiers", [])]
+        authors = ", ".join(v.get("authors", []))
+        if any(
+            is_russian_book(v.get("title", ""), authors, i, [v.get("language", "")])
+            for i in ids or [""]
+        ):
+            continue
         out.append(
             {
                 "src": link.replace("http://", "https://", 1).replace("&edge=curl", ""),
                 "title": v.get("title", ""),
-                "author": ", ".join(v.get("authors", [])),
+                "author": authors,
                 "year": (v.get("publishedDate") or "")[:4],
                 "source": "Google Books",
             }
@@ -66,7 +76,11 @@ def _google(query: str) -> list[dict]:
 
 def _open_library(params: dict) -> list[dict]:
     query = urllib.parse.urlencode(
-        {**params, "limit": PER_QUERY, "fields": "title,author_name,first_publish_year,cover_i"}
+        {
+            **params,
+            "limit": PER_QUERY,
+            "fields": "title,author_name,first_publish_year,cover_i,language",
+        }
     )
     data = _get_json(f"https://openlibrary.org/search.json?{query}")
     return [
@@ -79,6 +93,9 @@ def _open_library(params: dict) -> list[dict]:
         }
         for d in data.get("docs", [])
         if d.get("cover_i")
+        and not is_russian_book(
+            d.get("title", ""), ", ".join(d.get("author_name", [])), languages=d.get("language", [])
+        )
     ]
 
 

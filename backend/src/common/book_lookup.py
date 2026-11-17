@@ -11,6 +11,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from common import cover_sources as sources
 from domain.book_metadata import guess_genre, map_language, normalize_isbn, year_of
+from domain.language_policy import is_russian_book, is_russian_isbn
 
 PER_SOURCE = 8
 MAX_RESULTS = 10
@@ -30,14 +31,18 @@ def _google(query: str) -> list[dict]:
         if not v.get("title"):
             continue
         ids = {i.get("type"): i.get("identifier", "") for i in v.get("industryIdentifiers", [])}
+        isbn = normalize_isbn(ids.get("ISBN_13") or ids.get("ISBN_10") or "")
+        authors = ", ".join(v.get("authors", []))
+        if is_russian_book(v["title"], authors, isbn, [v.get("language", "")]):
+            continue
         links = v.get("imageLinks") or {}
         cover = links.get("thumbnail") or links.get("smallThumbnail") or ""
         out.append(
             {
                 "title": v["title"],  # without the subtitle: it is too long for a spine
-                "author": ", ".join(v.get("authors", [])),
+                "author": authors,
                 "year": year_of(v.get("publishedDate")),
-                "isbn": normalize_isbn(ids.get("ISBN_13") or ids.get("ISBN_10") or ""),
+                "isbn": isbn,
                 "language": map_language([v.get("language", "")] if v.get("language") else []),
                 "genre": guess_genre(v.get("categories", [])),
                 "cover_url": cover.replace("http://", "https://", 1).replace("&edge=curl", ""),
@@ -55,11 +60,17 @@ def _open_library(params: dict) -> list[dict]:
     for d in data.get("docs", []):
         if not d.get("title"):
             continue
-        isbns = [normalize_isbn(i) for i in d.get("isbn", [])]
+        # a work lists the ISBNs of all its editions: never offer a Russian one
+        isbns = [
+            i for i in (normalize_isbn(i) for i in d.get("isbn", [])) if not is_russian_isbn(i)
+        ]
+        authors = ", ".join(d.get("author_name", [])[:3])
+        if is_russian_book(d["title"], authors, languages=d.get("language", [])):
+            continue
         out.append(
             {
                 "title": d["title"],
-                "author": ", ".join(d.get("author_name", [])[:3]),
+                "author": authors,
                 "year": year_of(d.get("first_publish_year")),
                 "isbn": next((i for i in isbns if len(i) == 13), next(filter(None, isbns), "")),
                 "language": map_language(d.get("language", [])),
