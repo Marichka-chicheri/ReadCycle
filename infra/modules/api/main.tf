@@ -65,6 +65,11 @@ data "aws_iam_policy_document" "data_access" {
     actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
     resources = ["${var.photos_bucket_arn}/*"]
   }
+  # Google Books API key for cover search (SecureString, created by hand; see README).
+  statement {
+    actions   = ["ssm:GetParameter"]
+    resources = ["arn:aws:ssm:*:*:parameter${var.google_books_key_param}"]
+  }
 }
 
 resource "aws_iam_role_policy" "data_access" {
@@ -92,8 +97,9 @@ resource "aws_lambda_function" "route" {
   memory_size      = 256
   environment {
     variables = {
-      TABLE_NAME    = var.table_name
-      PHOTOS_BUCKET = var.photos_bucket_name
+      TABLE_NAME             = var.table_name
+      PHOTOS_BUCKET          = var.photos_bucket_name
+      GOOGLE_BOOKS_KEY_PARAM = var.google_books_key_param
     }
   }
   depends_on = [aws_cloudwatch_log_group.route]

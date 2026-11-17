@@ -7,18 +7,24 @@ import BookCover from './BookCover.jsx';
 // the drawn cloth cover. `value` = { cover_key, cover_url, cover_src }; onChange gets the same.
 export default function CoverPicker({ title, author, value, onChange, error }) {
   const [results, setResults] = useState(null);
+  const [query, setQuery] = useState('');
+  const [noGoogle, setNoGoogle] = useState(false);
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
   const fileInput = useRef(null);
   const hasCover = Boolean(value.cover_key || value.cover_url);
 
-  const search = async () => {
+  // First search uses the form's title and author; then the user can refine the text freely
+  // (e.g. the original English title).
+  const search = async (q = '') => {
     setBusy(true);
     setStatus('Шукаємо обкладинки…');
+    if (!q) setQuery(`${title} ${author}`.trim());
     try {
-      const found = await searchCovers(title, author);
-      setResults(found);
-      setStatus(found.length ? 'Обери обкладинку, що підходить' : '');
+      const { covers, google } = await searchCovers(q ? { q } : { title, author });
+      setResults(covers);
+      setNoGoogle(!google);
+      setStatus(covers.length ? 'Обери обкладинку, що підходить' : '');
     } catch {
       setStatus('Пошук зараз недоступний, спробуй пізніше або завантаж фото');
     } finally {
@@ -61,7 +67,7 @@ export default function CoverPicker({ title, author, value, onChange, error }) {
           <button
             type="button"
             className="btn--ghost btn--small"
-            onClick={search}
+            onClick={() => search()}
             disabled={busy || !title.trim()}
             title={title.trim() ? '' : 'Спершу впиши назву'}
           >
@@ -90,6 +96,36 @@ export default function CoverPicker({ title, author, value, onChange, error }) {
         </div>
       </div>
 
+      {results && (
+        <div className="cover-search">
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault(); // don't submit the book form
+                if (query.trim()) search(query);
+              }
+            }}
+            placeholder="Уточни пошук: інша назва, оригінал англійською, ISBN…"
+            maxLength={150}
+          />
+          <button
+            type="button"
+            className="btn--small"
+            onClick={() => search(query)}
+            disabled={busy || !query.trim()}
+          >
+            Шукати
+          </button>
+        </div>
+      )}
+      {results && noGoogle && (
+        <p className="muted cover-picker__status">
+          Google Books ще не підключено, тому шукаємо лише в Open Library (переважно англійські
+          видання).
+        </p>
+      )}
       {results && (
         <div className="cover-results">
           {results.length === 0 ? (

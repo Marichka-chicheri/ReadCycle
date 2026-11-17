@@ -22,6 +22,7 @@ locals {
     matches          = { route_key = "GET /matches", handler = "handlers.matches.handler", auth = true }
     user_get         = { route_key = "GET /users/{id}", handler = "handlers.users.handler", auth = true }
     uploads_create   = { route_key = "POST /uploads", handler = "handlers.uploads.handler", auth = true }
+    covers_search    = { route_key = "GET /covers/search", handler = "handlers.covers.handler", auth = true }
   }
 }
 

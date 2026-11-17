@@ -46,3 +46,9 @@ variable "photos_bucket_name" {
 variable "photos_bucket_arn" {
   type = string
 }
+
+variable "google_books_key_param" {
+  description = "SSM parameter (SecureString) with the Google Books API key; cover search works without it, but with Open Library only"
+  type        = string
+  default     = "/readcycle/google-books-api-key"
+}

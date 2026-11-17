@@ -2668,3 +2668,14 @@ button,
   margin-top: 26px;
   padding-left: 60px;
 }
+
+.cover-search {
+  display: flex;
+  gap: 8px;
+}
+.cover-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+}
