@@ -26,3 +26,10 @@ variable "extra_cors_origins" {
   type        = list(string)
   default     = ["http://localhost:5173"]
 }
+
+variable "google_books_api_key" {
+  description = "Google Books API key for cover search and book lookup. Comes from the GOOGLE_BOOKS_API_KEY GitHub secret; without it only Open Library is used."
+  type        = string
+  default     = ""
+  sensitive   = true
+}

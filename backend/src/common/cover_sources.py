@@ -1,8 +1,8 @@
 """Cover search in two free book catalogues, done from the backend.
 
 - Google Books: the best coverage of Ukrainian books, but it needs an API key — anonymous
-  requests share one worldwide quota that is almost always exhausted (HTTP 429). The key lives in
-  SSM Parameter Store (GOOGLE_BOOKS_KEY_PARAM), never in the code.
+  requests share one worldwide quota that is almost always exhausted (HTTP 429). The key comes
+  from the GOOGLE_BOOKS_API_KEY GitHub secret via Terraform into the Lambda environment.
 - Open Library: no key, large covers, mostly English-language books.
 
 Several query variants run in parallel; results are merged, de-duplicated, best first.
@@ -14,7 +14,6 @@ from __future__ import annotations
 import json
 import logging
 import os
-import time
 import urllib.parse
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -26,33 +25,10 @@ PER_QUERY = 20
 MAX_RESULTS = 30
 
 
-_key_cache = {"value": "", "checked_at": 0.0}
-KEY_RETRY_SECONDS = 60
-
-
 def google_key() -> str:
-    """The Google Books API key from SSM, or "" if it is not available.
-
-    A found key is kept for the life of the Lambda container. A missing one is re-checked at most
-    once a minute, so a key added after deployment starts working without a redeploy.
-    """
-    if _key_cache["value"]:
-        return _key_cache["value"]
-    name = os.environ.get("GOOGLE_BOOKS_KEY_PARAM", "")
-    if not name or time.time() - _key_cache["checked_at"] < KEY_RETRY_SECONDS:
-        return ""
-    _key_cache["checked_at"] = time.time()
-    try:
-        import boto3
-
-        ssm = boto3.client("ssm")
-        value = ssm.get_parameter(Name=name, WithDecryption=True)["Parameter"]["Value"].strip()
-        _key_cache["value"] = value
-        return value
-    except Exception as e:  # noqa: BLE001 - search still works with Open Library alone
-        # Shows up in CloudWatch: ParameterNotFound (wrong name/region) or AccessDenied (IAM/KMS).
-        log.warning("Google Books key %s is not available: %s", name, e)
-        return ""
+    """The Google Books API key (Lambda env var from the GOOGLE_BOOKS_API_KEY GitHub secret),
+    or "" when it is not configured — then only Open Library is searched."""
+    return os.environ.get("GOOGLE_BOOKS_API_KEY", "").strip()
 
 
 def _get_json(url: str) -> dict:

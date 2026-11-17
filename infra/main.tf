@@ -75,4 +75,6 @@ module "api" {
   table_arn          = module.data.table_arn
   photos_bucket_name = module.data.photos_bucket_name
   photos_bucket_arn  = module.data.photos_bucket_arn
+
+  google_books_api_key = var.google_books_api_key
 }
