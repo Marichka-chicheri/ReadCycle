@@ -74,6 +74,9 @@ export default function Home() {
           У шафі стоять книги, які інші студенти готові віддати чи обміняти. Натисни на корінець,
           щоб роздивитися книгу. <Link to="/profile">До моєї полиці →</Link>
         </p>
+        <Link to="/matches" className="btn match-button">
+          Знайти обмін
+        </Link>
       </header>
 
       {error && <p className="error">Не вдалося завантажити каталог: {error}</p>}
@@ -105,7 +108,11 @@ export default function Home() {
 
       {open && (
         <Modal onClose={() => setOpen(null)} wide>
-          <BookDetails book={open} />
+          <BookDetails book={open}>
+            <Link to={`/u/${open.owner_id}`} className="btn">
+              Профіль і контакти
+            </Link>
+          </BookDetails>
         </Modal>
       )}
     </section>

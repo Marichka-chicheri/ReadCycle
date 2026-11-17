@@ -154,3 +154,18 @@ class Profile:
     def to_owner_json(self) -> dict[str, Any]:
         """Everything, for the owner of the profile."""
         return asdict(self)
+
+    def to_public_json(self) -> dict[str, Any]:
+        """What other signed-in students see: who it is and how to reach them."""
+        data = asdict(self)
+        del data["created_at"], data["updated_at"]
+        return data
+
+    def to_summary_json(self) -> dict[str, Any]:
+        """Short card for lists (matches): no contacts — those are on the profile page."""
+        return {
+            "user_id": self.user_id,
+            "display_name": self.display_name,
+            "about": self.about,
+            "favorite_genres": self.favorite_genres,
+        }

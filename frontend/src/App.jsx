@@ -3,7 +3,9 @@ import { useAuth } from './AuthContext.jsx';
 import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import Matches from './pages/Matches.jsx';
 import Profile from './pages/Profile.jsx';
+import UserProfile from './pages/UserProfile.jsx';
 import Welcome from './pages/Welcome.jsx';
 import { useProfile } from './ProfileContext.jsx';
 
@@ -29,6 +31,7 @@ function ProtectedRoute({ children, onboarding = false }) {
 // Navigation items. New pages (profile, wishlist, matches) are added here as they appear.
 const NAV = [
   { to: '/', title: 'Шафа', caption: 'усі книги' },
+  { to: '/matches', title: 'Обмін', caption: 'знайти пару' },
   { to: '/profile', title: 'Профіль', caption: 'моя полиця' },
 ];
 
@@ -104,6 +107,22 @@ export default function App() {
             element={
               <ProtectedRoute onboarding>
                 <Welcome />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/matches"
+            element={
+              <ProtectedRoute>
+                <Matches />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/u/:id"
+            element={
+              <ProtectedRoute>
+                <UserProfile />
               </ProtectedRoute>
             }
           />

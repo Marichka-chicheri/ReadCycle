@@ -1,43 +1,9 @@
 import { useState } from 'react';
+import { AboutBlock, IdentityCard } from '../components/Identity.jsx';
 import MyShelf from '../components/MyShelf.jsx';
-import Wishlist from '../components/Wishlist.jsx';
 import ProfileForm from '../components/ProfileForm.jsx';
-import { genreLabel } from '../genres.js';
+import Wishlist from '../components/Wishlist.jsx';
 import { useProfile } from '../ProfileContext.jsx';
-
-function initials(name = '') {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((w) => w[0].toUpperCase())
-    .join('');
-}
-
-function Contacts({ profile }) {
-  return (
-    <ul className="contact-list">
-      {profile.telegram && (
-        <li>
-          <span>Telegram</span>
-          <a href={`https://t.me/${profile.telegram}`} target="_blank" rel="noreferrer">
-            @{profile.telegram}
-          </a>
-        </li>
-      )}
-      {profile.phone && (
-        <li>
-          <span>Телефон</span>
-          <a href={`tel:${profile.phone}`}>{profile.phone}</a>
-        </li>
-      )}
-      <li>
-        <span>Пошта</span>
-        <a href={`mailto:${profile.email}`}>{profile.email}</a>
-      </li>
-    </ul>
-  );
-}
 
 // The signed-in user's own profile: identity card, details, bookshelf and wishlist.
 export default function Profile() {
@@ -48,17 +14,7 @@ export default function Profile() {
   return (
     <section className="profile">
       <div className="profile__top">
-        <aside className="card identity">
-          <div className="monogram" aria-hidden="true">
-            {initials(profile.display_name)}
-          </div>
-          <h1>{profile.display_name}</h1>
-          {profile.age && <p className="identity__meta">{profile.age} р.</p>}
-          <span className="identity__fleuron" aria-hidden="true">
-            ❦
-          </span>
-          <Contacts profile={profile} />
-        </aside>
+        <IdentityCard profile={profile} />
 
         <div className="card profile__details">
           {editing ? (
@@ -80,38 +36,22 @@ export default function Profile() {
             </>
           ) : (
             <>
-              <div className="profile__head">
-                <span className="eyebrow">Про мене</span>
-                <button
-                  className="btn--ghost btn--small"
-                  onClick={() => {
-                    setSaved(false);
-                    setEditing(true);
-                  }}
-                >
-                  Редагувати
-                </button>
-              </div>
               {saved && <p className="ok">Профіль збережено.</p>}
-              {profile.about ? (
-                <p className="profile__about">{profile.about}</p>
-              ) : (
-                <p className="muted">
-                  Тут поки порожньо. Додай кілька слів про себе: що любиш читати, що шукаєш.
-                </p>
-              )}
-              <span className="eyebrow">Улюблені жанри</span>
-              {profile.favorite_genres.length ? (
-                <div className="chips">
-                  {profile.favorite_genres.map((g) => (
-                    <span key={g} className="chip chip--static">
-                      {genreLabel(g)}
-                    </span>
-                  ))}
-                </div>
-              ) : (
-                <p className="muted">Ще не обрано.</p>
-              )}
+              <AboutBlock
+                profile={profile}
+                emptyAbout="Тут поки порожньо. Додай кілька слів про себе: що любиш читати, що шукаєш."
+                action={
+                  <button
+                    className="btn--ghost btn--small"
+                    onClick={() => {
+                      setSaved(false);
+                      setEditing(true);
+                    }}
+                  >
+                    Редагувати
+                  </button>
+                }
+              />
             </>
           )}
         </div>

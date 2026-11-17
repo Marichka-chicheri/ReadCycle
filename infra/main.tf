@@ -19,6 +19,8 @@ locals {
     my_wishes_update = { route_key = "PUT /my/wishes/{id}", handler = "handlers.my_wishes.update_handler", auth = true }
     my_wishes_delete = { route_key = "DELETE /my/wishes/{id}", handler = "handlers.my_wishes.delete_handler", auth = true }
     catalog_list     = { route_key = "GET /books", handler = "handlers.catalog.list_handler", auth = true }
+    matches          = { route_key = "GET /matches", handler = "handlers.matches.handler", auth = true }
+    user_get         = { route_key = "GET /users/{id}", handler = "handlers.users.handler", auth = true }
   }
 }
 
