@@ -2,6 +2,7 @@
 
 from common.db import main_table
 from common.http import api_handler, current_user
+from common.moderation import hidden_users
 from domain.matching import find_matches
 from repositories.catalog import CatalogRepository
 from repositories.profiles import ProfileRepository
@@ -18,7 +19,9 @@ def get_repos() -> tuple[CatalogRepository, ProfileRepository]:
 def handler(event, context):
     viewer_id, _ = current_user(event)
     catalog, profiles = get_repos()
-    books, wishes = catalog.all_books(), catalog.all_wishes()
+    hidden = hidden_users(viewer_id)
+    books = [b for b in catalog.all_books() if b.owner_id not in hidden]
+    wishes = [w for w in catalog.all_wishes() if w.owner_id not in hidden]
 
     result = []
     for match in find_matches(viewer_id, books, wishes):

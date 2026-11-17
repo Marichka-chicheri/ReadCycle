@@ -98,7 +98,7 @@ def test_dynamodb_round_trip():
 def test_get_before_onboarding_returns_null():
     resp = profile_handler.get_handler(make_event(), None)
     assert resp["statusCode"] == 200
-    assert body_of(resp) == {"profile": None}
+    assert body_of(resp)["profile"] is None
 
 
 def test_put_then_get(table):

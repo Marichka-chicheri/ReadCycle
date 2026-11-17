@@ -1,9 +1,10 @@
 """A complaint about a book or a user.
 
 Stored as pk=REPORT#<target_type>#<target_id>, sk=BY#<reporter>: one complaint per person per
-target (sending it again just replaces the earlier one). gsi1pk="REPORT" lets a moderator list
-all complaints, newest first, through the same index as the catalog; the catalog itself only
-reads "BOOK" / "WISH", so complaints never leak into it.
+target (sending it again just replaces the earlier one). While open it carries gsi1pk="REPORT",
+so the moderator page lists open complaints, newest first, through the catalog index (which
+only reads "BOOK" / "WISH" / "BAN", so complaints never leak into it). A handled complaint
+moves to gsi1pk="REPORT_DONE" and stays as history.
 """
 
 from __future__ import annotations
@@ -21,6 +22,14 @@ TARGETS = (TARGET_BOOK, TARGET_USER)
 REASONS = ("spam", "inappropriate", "scam", "other")
 COMMENT_MAX = 500
 
+STATUS_OPEN = "open"
+STATUS_DISMISSED = "dismissed"  # moderator: nothing wrong
+STATUS_ACTED = "acted"  # moderator: book removed / account banned
+
+# Limits against abuse of the complaint form itself.
+MAX_REPORTS_PER_DAY = 5  # one student cannot flood moderators
+AUTO_BAN_COMPLAINANTS = 3  # this many different students complaining -> account is suspended
+
 
 @dataclass
 class Report:
@@ -32,6 +41,8 @@ class Report:
     owner_id: str = ""  # whose book / who is reported (== target_id for a user)
     title: str = ""  # book title at the time of the complaint (a book may be deleted later)
     comment: str = ""
+    status: str = STATUS_OPEN
+    handled_by: str = ""
     created_at: str = ""
 
     @classmethod
@@ -74,7 +85,11 @@ class Report:
             "pk": f"REPORT#{self.target_type}#{self.target_id}",
             "sk": f"BY#{self.reporter_id}",
             "type": "REPORT",
-            "gsi1pk": "REPORT",
+            "gsi1pk": "REPORT" if self.status == STATUS_OPEN else "REPORT_DONE",
             "gsi1sk": f"{self.created_at}#{self.target_type}#{self.target_id}#{self.reporter_id}",
             **asdict(self),
         }
+
+    @classmethod
+    def from_item(cls, item: dict[str, Any]) -> Report:
+        return cls(**{f: item.get(f, "") for f in cls.__dataclass_fields__})

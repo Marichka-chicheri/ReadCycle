@@ -9,6 +9,7 @@ from domain.wish import Wish
 from handlers import catalog, reports, users
 from repositories.books import BookRepository
 from repositories.catalog import CatalogRepository
+from repositories.moderation import ReportRepository
 from repositories.profiles import ProfileRepository
 from repositories.wishes import WishRepository
 
@@ -75,9 +76,10 @@ def test_given_books_leave_catalog_matching_and_public_profile(table, monkeypatc
 
 @pytest.fixture
 def report_env(table, monkeypatch):
-    monkeypatch.setattr(reports, "get_table", lambda: table)
     monkeypatch.setattr(
-        reports, "get_repos", lambda: (BookRepository(table), ProfileRepository(table))
+        reports,
+        "get_repos",
+        lambda: (BookRepository(table), ProfileRepository(table), ReportRepository(table)),
     )
     ProfileRepository(table).save(
         Profile.from_input("olia", "o@ucu.edu.ua", {"display_name": "Оля", "phone": "0971234567"})

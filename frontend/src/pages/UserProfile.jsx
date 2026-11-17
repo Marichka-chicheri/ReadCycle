@@ -29,6 +29,17 @@ export default function UserProfile() {
       .catch((e) => setError(e.status === 404 ? 'Такого профілю немає.' : e.message));
   }, [id]);
 
+  const block = async () => {
+    const name = data.profile.display_name;
+    if (!window.confirm(`Заблокувати ${name}? Ви більше не бачитимете одне одного.`)) return;
+    try {
+      await api(`/blocks/${encodeURIComponent(id)}`, { method: 'PUT' });
+      navigate('/', { replace: true });
+    } catch (e) {
+      window.alert(`Не вдалося заблокувати: ${e.message}`);
+    }
+  };
+
   if (me && id === me.user_id) return <Navigate to="/profile" replace />;
   if (error)
     return (
@@ -59,13 +70,22 @@ export default function UserProfile() {
             Напиши в Telegram, подзвони чи надішли листа: домовтеся, які книги обміняти і де
             зустрітися на кампусі.
           </p>
-          <button
-            type="button"
-            className="btn--ghost btn--small"
-            onClick={() => setReporting(true)}
-          >
-            Поскаржитись на користувача
-          </button>
+          <div className="form-actions">
+            <button type="button" className="btn--ghost btn--small" onClick={block}>
+              Заблокувати
+            </button>
+            <button
+              type="button"
+              className="btn--ghost btn--small"
+              onClick={() => setReporting(true)}
+            >
+              Поскаржитись
+            </button>
+          </div>
+          <p className="muted">
+            Заблокований студент зникає з вашої шафи й підбору обміну, а ви — з його. Розблокувати
+            можна у своєму профілі.
+          </p>
         </div>
       </div>
 

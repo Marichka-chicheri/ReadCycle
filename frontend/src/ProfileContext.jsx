@@ -10,12 +10,14 @@ export function ProfileProvider({ children }) {
   const { user } = useAuth();
   const [profile, setProfile] = useState(undefined);
   const [error, setError] = useState('');
+  const [flags, setFlags] = useState({ moderator: false, banned: false });
 
   const reload = useCallback(async () => {
     setError('');
     try {
-      const { profile } = await api('/profile');
+      const { profile, moderator, banned } = await api('/profile');
       setProfile(profile);
+      setFlags({ moderator: !!moderator, banned: !!banned });
     } catch (e) {
       setError(e.message);
     }
@@ -33,7 +35,7 @@ export function ProfileProvider({ children }) {
   };
 
   return (
-    <ProfileContext.Provider value={{ profile, error, reload, save }}>
+    <ProfileContext.Provider value={{ profile, ...flags, error, reload, save }}>
       {children}
     </ProfileContext.Provider>
   );

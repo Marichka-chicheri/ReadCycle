@@ -4,6 +4,7 @@ import ForgotPassword from './pages/ForgotPassword.jsx';
 import Home from './pages/Home.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import Moderator from './pages/Moderator.jsx';
 import Matches from './pages/Matches.jsx';
 import Profile from './pages/Profile.jsx';
 import UserProfile from './pages/UserProfile.jsx';
@@ -13,7 +14,7 @@ import { useProfile } from './ProfileContext.jsx';
 // Signed-in pages. Until the user has a profile, every page except /welcome redirects to it.
 function ProtectedRoute({ children, onboarding = false }) {
   const { user } = useAuth();
-  const { profile, error, reload } = useProfile();
+  const { profile, banned, error, reload } = useProfile();
   const location = useLocation();
   if (user === undefined) return <p className="loading">Відчиняємо шафу…</p>;
   if (!user) return <Navigate to="/login" replace state={{ from: location }} />;
@@ -25,8 +26,30 @@ function ProtectedRoute({ children, onboarding = false }) {
       </div>
     );
   if (profile === undefined) return <p className="loading">Відчиняємо шафу…</p>;
+  if (banned) return <Banned />;
   if (profile === null && !onboarding) return <Navigate to="/welcome" replace />;
   return children;
+}
+
+function Banned() {
+  const { signOut } = useAuth();
+  return (
+    <div className="card narrow">
+      <span className="eyebrow">Обмеження</span>
+      <h1>Акаунт заблоковано</h1>
+      <p>
+        Модератор обмежив доступ до вашого акаунта: ваші книги більше не показуються іншим, а
+        додавати чи змінювати щось не можна. Якщо це помилка, напишіть адміністраторам ReadCycle.
+      </p>
+      <button onClick={signOut}>Вийти</button>
+    </div>
+  );
+}
+
+// Moderator pages: only for emails on the moderator list (the server checks it too).
+function ModeratorRoute({ children }) {
+  const { moderator } = useProfile();
+  return moderator ? children : <Navigate to="/" replace />;
 }
 
 // Navigation items. New pages (profile, wishlist, matches) are added here as they appear.
@@ -55,7 +78,7 @@ function BrandMark() {
 
 function TopBar() {
   const { user, signOut } = useAuth();
-  const { profile } = useProfile();
+  const { profile, moderator } = useProfile();
   const name = profile?.display_name || user?.email || '';
   return (
     <header className="topbar">
@@ -77,6 +100,12 @@ function TopBar() {
                     <small>{n.caption}</small>
                   </NavLink>
                 ))}
+              {profile && moderator && (
+                <NavLink to="/moderator" end>
+                  <span>Модерація</span>
+                  <small>скарги</small>
+                </NavLink>
+              )}
             </nav>
             <div className="topbar__user">
               <span className="email">{name}</span>
@@ -121,6 +150,16 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Matches />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/moderator"
+            element={
+              <ProtectedRoute>
+                <ModeratorRoute>
+                  <Moderator />
+                </ModeratorRoute>
               </ProtectedRoute>
             }
           />

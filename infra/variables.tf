@@ -33,3 +33,9 @@ variable "google_books_api_key" {
   default     = ""
   sensitive   = true
 }
+
+variable "moderator_emails" {
+  description = "Comma-separated emails of moderators (see the moderator page). Comes from the MODERATOR_EMAILS GitHub variable."
+  type        = string
+  default     = ""
+}

@@ -6,6 +6,7 @@ Each book comes with its owner's display name so the cabinet can say whose shelf
 
 from common.db import main_table
 from common.http import api_handler, current_user
+from common.moderation import hidden_users
 from domain.catalog import CatalogFilter
 from repositories.catalog import CatalogRepository
 from repositories.profiles import ProfileRepository
@@ -24,10 +25,15 @@ def list_handler(event, context):
     flt = CatalogFilter.from_query(event.get("queryStringParameters"))
     catalog, profiles = get_repos()
 
+    # banned accounts and people blocked in either direction stay out of the cabinet
+    hidden = hidden_users(viewer_id)
     found = [
         b
         for b in catalog.all_books()
-        if b.owner_id != viewer_id and not b.is_given and flt.matches(b)
+        if b.owner_id != viewer_id
+        and b.owner_id not in hidden
+        and not b.is_given
+        and flt.matches(b)
     ]
     shown = found[:MAX_RESULTS]
 

@@ -2,6 +2,7 @@
 
 from common.db import main_table
 from common.http import ApiError, api_handler, current_user
+from common.moderation import hidden_users
 from repositories.books import BookRepository
 from repositories.profiles import ProfileRepository
 from repositories.wishes import WishRepository
@@ -14,10 +15,13 @@ def get_repos() -> tuple[ProfileRepository, BookRepository, WishRepository]:
 
 @api_handler
 def handler(event, context):
-    current_user(event)  # any signed-in student may look
+    viewer_id, _ = current_user(event)  # any signed-in student may look
     user_id = (event.get("pathParameters") or {}).get("id", "")
     profiles, books, wishes = get_repos()
     profile = profiles.get(user_id) if user_id else None
+    # banned or blocked: indistinguishable from "no such profile"
+    if profile and user_id in hidden_users(viewer_id):
+        profile = None
     if not profile:
         raise ApiError(404, "NOT_FOUND", "Профіль не знайдено")
     return {

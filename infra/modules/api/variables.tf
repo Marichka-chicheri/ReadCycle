@@ -53,3 +53,9 @@ variable "google_books_api_key" {
   default     = ""
   sensitive   = true
 }
+
+variable "moderator_emails" {
+  description = "Comma-separated moderator emails (\"\" = nobody can moderate)"
+  type        = string
+  default     = ""
+}

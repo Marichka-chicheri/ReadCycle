@@ -48,6 +48,14 @@ def table():
 
 
 @pytest.fixture(autouse=True)
+def fake_moderation_table(table, monkeypatch):
+    """Bans / blocks are looked up in the same in-memory table the test uses."""
+    from common import moderation
+
+    monkeypatch.setattr(moderation, "main_table", lambda: table)
+
+
+@pytest.fixture(autouse=True)
 def fake_storage(monkeypatch):
     """No S3 in unit tests: photo links are predictable strings, deletions are recorded."""
     from common import storage

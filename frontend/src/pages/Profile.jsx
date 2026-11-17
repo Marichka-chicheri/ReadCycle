@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { AboutBlock, IdentityCard } from '../components/Identity.jsx';
+import BlockedUsers from '../components/BlockedUsers.jsx';
 import MyShelf from '../components/MyShelf.jsx';
 import ProfileForm from '../components/ProfileForm.jsx';
 import Wishlist from '../components/Wishlist.jsx';
@@ -59,6 +60,7 @@ export default function Profile() {
 
       <MyShelf />
       <Wishlist />
+      <BlockedUsers />
     </section>
   );
 }

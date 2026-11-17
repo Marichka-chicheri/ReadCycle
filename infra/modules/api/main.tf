@@ -95,6 +95,7 @@ resource "aws_lambda_function" "route" {
       TABLE_NAME           = var.table_name
       PHOTOS_BUCKET        = var.photos_bucket_name
       GOOGLE_BOOKS_API_KEY = var.google_books_api_key
+      MODERATOR_EMAILS     = var.moderator_emails
     }
   }
   depends_on = [aws_cloudwatch_log_group.route]

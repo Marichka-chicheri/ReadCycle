@@ -25,6 +25,14 @@ locals {
     covers_search    = { route_key = "GET /covers/search", handler = "handlers.covers.handler", auth = true }
     books_lookup     = { route_key = "GET /books/lookup", handler = "handlers.book_lookup.handler", auth = true }
     reports_create   = { route_key = "POST /reports", handler = "handlers.reports.create_handler", auth = true }
+    blocks_list      = { route_key = "GET /my/blocks", handler = "handlers.blocks.list_handler", auth = true }
+    block_put        = { route_key = "PUT /blocks/{id}", handler = "handlers.blocks.block_handler", auth = true }
+    block_delete     = { route_key = "DELETE /blocks/{id}", handler = "handlers.blocks.unblock_handler", auth = true }
+    mod_reports      = { route_key = "GET /mod/reports", handler = "handlers.moderator.reports_handler", auth = true }
+    mod_resolve      = { route_key = "POST /mod/reports/resolve", handler = "handlers.moderator.resolve_handler", auth = true }
+    mod_bans         = { route_key = "GET /mod/bans", handler = "handlers.moderator.bans_handler", auth = true }
+    mod_ban          = { route_key = "POST /mod/bans/{id}", handler = "handlers.moderator.ban_handler", auth = true }
+    mod_unban        = { route_key = "DELETE /mod/bans/{id}", handler = "handlers.moderator.unban_handler", auth = true }
   }
 }
 
@@ -78,4 +86,5 @@ module "api" {
   photos_bucket_arn  = module.data.photos_bucket_arn
 
   google_books_api_key = var.google_books_api_key
+  moderator_emails     = var.moderator_emails
 }

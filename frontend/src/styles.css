@@ -2824,3 +2824,64 @@ button,
   margin: 28px 0 0;
   text-align: center;
 }
+
+/* ---------------- moderation ---------------- */
+.mod-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.mod-groups {
+  display: grid;
+  gap: 16px;
+}
+.mod-group__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.mod-group h3 {
+  margin: 2px 0;
+}
+.mod-count {
+  align-self: flex-start;
+  min-width: 38px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--wine-700);
+  color: var(--cream-50);
+  font-weight: 700;
+  text-align: center;
+}
+.mod-banned {
+  color: var(--wine-700);
+}
+.mod-reasons {
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.mod-reasons p {
+  margin: 2px 0 0;
+}
+.mod-list {
+  margin: 0;
+  padding: 8px 20px;
+  list-style: none;
+}
+.mod-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(116, 32, 51, 0.15);
+}
+.mod-row:last-child {
+  border-bottom: 0;
+}
+.mod-empty {
+  text-align: center;
+}

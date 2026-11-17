@@ -10,6 +10,7 @@ from typing import Any
 
 from common import storage
 from common.http import ApiError, current_user, json_body
+from common.moderation import assert_not_banned
 
 log = logging.getLogger(__name__)
 
@@ -66,6 +67,7 @@ class OwnedCollectionApi:
 
     def create(self, event, context):
         owner_id, _ = current_user(event)
+        assert_not_banned(owner_id)
         repo = self.repo_factory()
         entity = self.entity.from_input(owner_id, json_body(event))
         if repo.count(owner_id) >= self.limit:
@@ -75,6 +77,7 @@ class OwnedCollectionApi:
 
     def update(self, event, context):
         owner_id, _ = current_user(event)
+        assert_not_banned(owner_id)
         repo = self.repo_factory()
         existing = self._own(repo, owner_id, self._item_id(event))
         entity = self.entity.from_input(owner_id, json_body(event), existing=existing)
