@@ -59,6 +59,13 @@ export default function UserProfile() {
             Напиши в Telegram, подзвони чи надішли листа: домовтеся, які книги обміняти і де
             зустрітися на кампусі.
           </p>
+          <button
+            type="button"
+            className="btn--ghost btn--small"
+            onClick={() => setReporting(true)}
+          >
+            Поскаржитись на користувача
+          </button>
         </div>
       </div>
 
@@ -97,12 +104,6 @@ export default function UserProfile() {
           <span className="drawer__pull" aria-hidden="true" />
         </div>
       </div>
-
-      <p className="report-footer">
-        <button type="button" className="link report-link" onClick={() => setReporting(true)}>
-          Поскаржитись на цього користувача
-        </button>
-      </p>
 
       {open && (
         <Modal onClose={() => setOpen(null)} wide>
