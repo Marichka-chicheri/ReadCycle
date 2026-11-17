@@ -2744,3 +2744,38 @@ button,
   font-size: 0.72rem;
   color: var(--taupe-600);
 }
+
+/* wishlist: optional cover from the catalogue */
+.wish-cover {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.wish-cover__img {
+  width: 46px;
+}
+.catalog-card--with-cover .catalog-card__title,
+.catalog-card--with-cover .catalog-card__author,
+.catalog-card--with-cover .catalog-card__meta {
+  padding-right: 58px;
+}
+.catalog-card__cover {
+  position: absolute;
+  top: 40px;
+  right: 14px;
+  width: 50px;
+  transform: rotate(3deg);
+}
+.catalog-card__cover::before {
+  /* paper clip */
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 14px;
+  z-index: 1;
+  width: 10px;
+  height: 26px;
+  border: 2px solid #8b8e92;
+  border-radius: 6px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
+}

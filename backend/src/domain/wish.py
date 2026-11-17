@@ -17,6 +17,7 @@ from common.genres import is_genre
 from common.http import ValidationError
 from common.languages import is_language
 from domain.book import AUTHOR_MAX, TITLE_MAX, clean_text
+from domain.media import is_allowed_cover_url
 from domain.profile import now_iso
 
 KIND_BOOK = "book"
@@ -35,6 +36,7 @@ class Wish:
     genre: str = ""
     language: str = ""
     note: str = ""
+    cover_url: str = ""  # optional cover picked from the catalogue (book wishes only)
     created_at: str = ""
     updated_at: str = ""
 
@@ -65,6 +67,10 @@ class Wish:
         if language and not is_language(language):
             errors["language"] = "Невідома мова"
 
+        cover_url = str(data.get("cover_url") or "").strip() if kind == KIND_BOOK else ""
+        if cover_url and not is_allowed_cover_url(cover_url):
+            errors["cover_url"] = "Цю обкладинку не вдалося додати"
+
         note = str(data.get("note") or "").strip()
         if len(note) > NOTE_MAX:
             errors["note"] = f"Не більше {NOTE_MAX} символів"
@@ -82,6 +88,7 @@ class Wish:
             genre=genre,
             language=language,
             note=note,
+            cover_url=cover_url,
             created_at=existing.created_at if existing else ts,
             updated_at=ts,
         )

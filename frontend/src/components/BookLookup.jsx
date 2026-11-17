@@ -5,19 +5,25 @@ import BookCover from './BookCover.jsx';
 
 // "Find the book" at the top of the add-book form: search the catalogues by title, author or
 // ISBN and fill the form from the chosen edition (onPick gets one result).
-export default function BookLookup({ onPick }) {
+export default function BookLookup({
+  onPick,
+  label = 'Знайти книгу й заповнити форму',
+  placeholder = 'Назва, автор або ISBN зі зворотного боку книги',
+}) {
   const [q, setQ] = useState('');
   const [results, setResults] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [noGoogle, setNoGoogle] = useState(false);
 
   const search = async () => {
     if (!q.trim()) return;
     setBusy(true);
     setError('');
     try {
-      const { books } = await lookupBooks(q);
+      const { books, google } = await lookupBooks(q);
       setResults(books);
+      setNoGoogle(!google);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -27,7 +33,7 @@ export default function BookLookup({ onPick }) {
 
   return (
     <div className="lookup">
-      <span className="label-text">Знайти книгу й заповнити форму</span>
+      <span className="label-text">{label}</span>
       <div className="cover-search">
         <input
           value={q}
@@ -38,7 +44,7 @@ export default function BookLookup({ onPick }) {
               search();
             }
           }}
-          placeholder="Назва, автор або ISBN зі зворотного боку книги"
+          placeholder={placeholder}
           maxLength={150}
           autoFocus
         />
@@ -47,6 +53,12 @@ export default function BookLookup({ onPick }) {
         </button>
       </div>
       {error && <span className="field-error">{error}</span>}
+      {results && noGoogle && (
+        <span className="muted cover-picker__status">
+          Google Books не підключено (немає ключа), тому шукаємо лише в Open Library, де майже немає
+          українських видань.
+        </span>
+      )}
 
       {results && (
         <ul className="lookup__results">

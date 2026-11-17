@@ -89,3 +89,11 @@ def test_cannot_touch_someone_elses_wish():
     theirs = _add(BOOK_WISH, sub="other")
     resp = my_wishes.delete_handler(make_event(path={"id": theirs["wish_id"]}), None)
     assert resp["statusCode"] == 404
+
+
+def test_book_wish_cover_from_catalogue():
+    url = "https://covers.openlibrary.org/b/id/1-L.jpg"
+    assert Wish.from_input("u", {**BOOK_WISH, "cover_url": url}).cover_url == url
+    assert "cover_url" in _errors({**BOOK_WISH, "cover_url": "https://evil.example.com/x.jpg"})
+    # a genre wish has no cover
+    assert Wish.from_input("u", {**GENRE_WISH, "cover_url": url}).cover_url == ""

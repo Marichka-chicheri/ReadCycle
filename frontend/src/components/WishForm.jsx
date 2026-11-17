@@ -1,12 +1,22 @@
 import { useState } from 'react';
 import { GENRES, LANGUAGES } from '../genres.js';
+import BookCover from './BookCover.jsx';
+import BookLookup from './BookLookup.jsx';
 
 const KINDS = [
   ['book', 'Конкретна книга', 'знаю назву'],
   ['genre', 'Щось із жанру', 'відкрита до пропозицій'],
 ];
 
-const EMPTY = { kind: 'book', title: '', author: '', genre: '', language: '', note: '' };
+const EMPTY = {
+  kind: 'book',
+  title: '',
+  author: '',
+  genre: '',
+  language: '',
+  note: '',
+  cover_url: '',
+};
 
 // Add / edit a wishlist entry: either a specific book, or "anything in this genre".
 export default function WishForm({
@@ -23,6 +33,21 @@ export default function WishForm({
   const set = (key) => (e) => setData((d) => ({ ...d, [key]: e.target.value }));
   const err = (key) => errors[key] && <span className="field-error">{errors[key]}</span>;
   const isBook = data.kind === 'book';
+  const [filledFrom, setFilledFrom] = useState('');
+
+  // Optional: pick the book in a catalogue. Language is left as is on purpose — a wish for a
+  // book usually means "in any language", and a language would narrow the matching.
+  const fill = (b) => {
+    setData((d) => ({
+      ...d,
+      title: b.title || d.title,
+      author: b.author || d.author,
+      genre: b.genre || d.genre,
+      cover_url: b.cover_url || '',
+    }));
+    setFilledFrom(b.source);
+    setErrors({});
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -59,9 +84,36 @@ export default function WishForm({
 
       {isBook && (
         <>
+          <BookLookup
+            onPick={fill}
+            label="Знайти книгу в каталозі (необов'язково)"
+            placeholder="Назва, автор або ISBN — або просто впиши назву нижче"
+          />
+          {filledFrom && (
+            <p className="ok">Заповнено з {filledFrom}. Мову за потреби обери нижче.</p>
+          )}
+          {data.cover_url && (
+            <div className="wish-cover">
+              <span className="wish-cover__img">
+                <BookCover
+                  title={data.title}
+                  author={data.author}
+                  src={data.cover_url}
+                  size="mini"
+                />
+              </span>
+              <button
+                type="button"
+                className="link"
+                onClick={() => setData((d) => ({ ...d, cover_url: '' }))}
+              >
+                Прибрати обкладинку
+              </button>
+            </div>
+          )}
           <label>
             Назва
-            <input value={data.title} onChange={set('title')} maxLength={150} autoFocus />
+            <input value={data.title} onChange={set('title')} maxLength={150} />
             {err('title')}
           </label>
           <label>

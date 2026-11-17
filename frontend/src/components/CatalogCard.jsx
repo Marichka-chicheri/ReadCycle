@@ -1,4 +1,5 @@
 import { genreLabel, languageLabel } from '../genres.js';
+import BookCover from './BookCover.jsx';
 
 // A wishlist entry drawn as a typed library catalogue card (lined paper, red rule, rod hole).
 // Clickable when `onClick` is given (own wishlist), read-only otherwise.
@@ -6,7 +7,9 @@ export default function CatalogCard({ wish, number, onClick }) {
   const isBook = wish.kind === 'book';
   // read-only on other people's profiles: a plain <div> instead of a button
   const Tag = onClick ? 'button' : 'div';
-  const cls = `catalog-card${onClick ? '' : ' catalog-card--static'}`;
+  const cls = `catalog-card${onClick ? '' : ' catalog-card--static'}${
+    wish.cover_url ? ' catalog-card--with-cover' : ''
+  }`;
   const meta = [wish.genre && genreLabel(wish.genre), wish.language && languageLabel(wish.language)]
     .filter(Boolean)
     .join(' · ');
@@ -35,6 +38,12 @@ export default function CatalogCard({ wish, number, onClick }) {
         </>
       )}
       {wish.note && <span className="catalog-card__note">{wish.note}</span>}
+      {wish.cover_url && (
+        // a little cover clipped to the card
+        <span className="catalog-card__cover" aria-hidden="true">
+          <BookCover title={wish.title} author={wish.author} src={wish.cover_url} size="mini" />
+        </span>
+      )}
       <span className="catalog-card__hole" aria-hidden="true" />
     </Tag>
   );
