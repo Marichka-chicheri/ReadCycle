@@ -15,6 +15,18 @@ export default function BookDetails({ book, children }) {
           <dd>{genreLabel(book.genre)}</dd>
           <dt>Мова</dt>
           <dd>{languageLabel(book.language)}</dd>
+          {book.year && (
+            <>
+              <dt>Рік</dt>
+              <dd>{book.year}</dd>
+            </>
+          )}
+          {book.isbn && (
+            <>
+              <dt>ISBN</dt>
+              <dd>{book.isbn}</dd>
+            </>
+          )}
           {book.owner_name && (
             <>
               <dt>З полиці</dt>

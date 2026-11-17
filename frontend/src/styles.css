@@ -2679,3 +2679,68 @@ button,
   padding: 8px 12px;
   font-size: 0.9rem;
 }
+
+/* "find the book" at the top of the add-book form */
+.lookup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+  background: rgba(116, 32, 51, 0.05);
+  box-shadow: inset 0 0 0 1px rgba(116, 32, 51, 0.12);
+}
+.lookup__results {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 320px;
+  margin: 4px 0 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.lookup__item {
+  justify-content: flex-start;
+  gap: 14px;
+  width: 100%;
+  padding: 8px;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+.lookup__item:hover {
+  filter: none;
+  background: rgba(255, 255, 255, 0.6);
+}
+.lookup__cover {
+  flex: 0 0 40px;
+}
+.lookup__cover .cover--mini {
+  padding: 3px;
+}
+.lookup__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+.lookup__text strong {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lookup__text span {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+.lookup__text small {
+  font-size: 0.72rem;
+  color: var(--taupe-600);
+}

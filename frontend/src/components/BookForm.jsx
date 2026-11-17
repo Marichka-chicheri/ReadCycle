@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { GENRES, LANGUAGES, OFFERS } from '../genres.js';
+import BookLookup from './BookLookup.jsx';
 import CoverPicker from './CoverPicker.jsx';
 
 const EMPTY = {
@@ -9,6 +10,8 @@ const EMPTY = {
   genre: '',
   offer: 'exchange',
   description: '',
+  year: '',
+  isbn: '',
   cover_key: '',
   cover_url: '',
   cover_src: '',
@@ -25,6 +28,25 @@ export default function BookForm({
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [filledFrom, setFilledFrom] = useState('');
+  const isNew = !initial?.book_id;
+
+  // Fill the form from a catalogue match; keep what the catalogue does not know
+  // and never replace a photo the user uploaded.
+  const fill = (b) => {
+    setData((d) => ({
+      ...d,
+      title: b.title || d.title,
+      author: b.author || d.author,
+      year: b.year || d.year,
+      isbn: b.isbn || d.isbn,
+      language: b.language || d.language,
+      genre: b.genre || d.genre,
+      ...(b.cover_url && !d.cover_key ? { cover_url: b.cover_url, cover_src: b.cover_url } : {}),
+    }));
+    setFilledFrom(b.source);
+    setErrors({});
+  };
 
   const set = (key) => (e) => setData((d) => ({ ...d, [key]: e.target.value }));
   const err = (key) => errors[key] && <span className="field-error">{errors[key]}</span>;
@@ -46,9 +68,15 @@ export default function BookForm({
 
   return (
     <form onSubmit={submit} className="profile-form" noValidate>
+      {isNew && <BookLookup onPick={fill} />}
+      {filledFrom && (
+        <p className="ok">
+          Заповнено з {filledFrom}. Перевір назву, жанр і мову: каталоги іноді помиляються.
+        </p>
+      )}
       <label>
         Назва
-        <input value={data.title} onChange={set('title')} maxLength={150} autoFocus />
+        <input value={data.title} onChange={set('title')} maxLength={150} />
         {err('title')}
       </label>
       <label>
@@ -88,6 +116,28 @@ export default function BookForm({
             ))}
           </select>
           {err('language')}
+        </label>
+      </div>
+      <div className="row-2">
+        <label>
+          <span>
+            Рік видання <span className="optional">необов'язково</span>
+          </span>
+          <input
+            inputMode="numeric"
+            value={data.year}
+            onChange={set('year')}
+            maxLength={4}
+            placeholder="2019"
+          />
+          {err('year')}
+        </label>
+        <label>
+          <span>
+            ISBN <span className="optional">необов'язково</span>
+          </span>
+          <input value={data.isbn} onChange={set('isbn')} maxLength={17} placeholder="978-…" />
+          {err('isbn')}
         </label>
       </div>
       <div className="label">

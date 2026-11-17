@@ -9,18 +9,26 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from typing import Any
 
 from common import storage
 from common.genres import is_genre
 from common.http import ValidationError
 from common.languages import is_language
+from domain.book_metadata import normalize_isbn
 from domain.media import KIND_COVER, is_allowed_cover_url, is_own_photo_key
 from domain.profile import now_iso
 
 TITLE_MAX = 150
 AUTHOR_MAX = 100
 DESCRIPTION_MAX = 1000
+YEAR_MIN = 1450  # Gutenberg; anything earlier is a typo
+
+
+def _this_year() -> int:
+    return datetime.now(UTC).year
+
 
 OFFER_GIVE = "give"  # віддам безкоштовно
 OFFER_EXCHANGE = "exchange"  # лише обмін
@@ -41,6 +49,8 @@ class Book:
     genre: str
     offer: str
     description: str = ""
+    year: str = ""  # year of this edition, "" if unknown
+    isbn: str = ""  # ISBN-10/13 digits only, "" if unknown
     cover_key: str = ""  # uploaded photo (S3 key under covers/<owner>/)
     cover_url: str = ""  # or a picture picked from cover search (Google Books / Open Library)
     created_at: str = ""
@@ -74,6 +84,15 @@ class Book:
         if len(description) > DESCRIPTION_MAX:
             errors["description"] = f"Не більше {DESCRIPTION_MAX} символів"
 
+        year = str(data.get("year") or "").strip()
+        if year and not (year.isdigit() and YEAR_MIN <= int(year) <= _this_year() + 1):
+            errors["year"] = f"Рік від {YEAR_MIN} до {_this_year() + 1}"
+
+        isbn_raw = str(data.get("isbn") or "").strip()
+        isbn = normalize_isbn(isbn_raw)
+        if isbn_raw and not isbn:
+            errors["isbn"] = "ISBN має 10 або 13 цифр"
+
         cover_key = str(data.get("cover_key") or "")
         cover_url = str(data.get("cover_url") or "").strip()
         if cover_key and not is_own_photo_key(cover_key, KIND_COVER, owner_id):
@@ -96,6 +115,8 @@ class Book:
             genre=genre,
             offer=offer,
             description=description,
+            year=year,
+            isbn=isbn,
             cover_key=cover_key,
             cover_url=cover_url,
             created_at=existing.created_at if existing else ts,

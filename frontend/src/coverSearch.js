@@ -12,3 +12,9 @@ export async function searchCovers({ title = '', author = '', q = '' }) {
   }
   return api(`/covers/search?${params}`);
 }
+
+// Catalogue matches for auto-filling the book form: title/author text or an ISBN.
+// Returns { books: [{ title, author, year, isbn, language, genre, cover_url, source }] }.
+export async function lookupBooks(q) {
+  return api(`/books/lookup?${new URLSearchParams({ q: q.trim() })}`);
+}
