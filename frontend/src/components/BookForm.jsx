@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { GENRES, LANGUAGES, OFFERS } from '../genres.js';
+import CoverPicker from './CoverPicker.jsx';
 
 const EMPTY = {
   title: '',
@@ -8,6 +9,9 @@ const EMPTY = {
   genre: '',
   offer: 'exchange',
   description: '',
+  cover_key: '',
+  cover_url: '',
+  cover_src: '',
 };
 
 // Add / edit a book on the user's shelf. Server-side validation messages appear under each field.
@@ -52,6 +56,13 @@ export default function BookForm({
         <input value={data.author} onChange={set('author')} maxLength={100} />
         {err('author')}
       </label>
+      <CoverPicker
+        title={data.title}
+        author={data.author}
+        value={data}
+        onChange={(cover) => setData((d) => ({ ...d, ...cover }))}
+        error={errors.cover}
+      />
       <div className="row-2">
         <label>
           Жанр

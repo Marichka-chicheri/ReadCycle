@@ -11,9 +11,11 @@ import uuid
 from dataclasses import asdict, dataclass
 from typing import Any
 
+from common import storage
 from common.genres import is_genre
 from common.http import ValidationError
 from common.languages import is_language
+from domain.media import KIND_COVER, is_allowed_cover_url, is_own_photo_key
 from domain.profile import now_iso
 
 TITLE_MAX = 150
@@ -39,6 +41,8 @@ class Book:
     genre: str
     offer: str
     description: str = ""
+    cover_key: str = ""  # uploaded photo (S3 key under covers/<owner>/)
+    cover_url: str = ""  # or a picture picked from cover search (Google Books / Open Library)
     created_at: str = ""
     updated_at: str = ""
 
@@ -70,6 +74,15 @@ class Book:
         if len(description) > DESCRIPTION_MAX:
             errors["description"] = f"Не більше {DESCRIPTION_MAX} символів"
 
+        cover_key = str(data.get("cover_key") or "")
+        cover_url = str(data.get("cover_url") or "").strip()
+        if cover_key and not is_own_photo_key(cover_key, KIND_COVER, owner_id):
+            errors["cover"] = "Фото не знайдено, завантажте його ще раз"
+        elif cover_url and not is_allowed_cover_url(cover_url):
+            errors["cover"] = "Цю обкладинку не вдалося додати"
+        if cover_key:
+            cover_url = ""  # an uploaded photo wins over a found one
+
         if errors:
             raise ValidationError(errors)
 
@@ -83,6 +96,8 @@ class Book:
             genre=genre,
             offer=offer,
             description=description,
+            cover_key=cover_key,
+            cover_url=cover_url,
             created_at=existing.created_at if existing else ts,
             updated_at=ts,
         )
@@ -105,5 +120,10 @@ class Book:
     def from_item(cls, item: dict[str, Any]) -> Book:
         return cls(**{f: item.get(f, "") for f in cls.__dataclass_fields__})
 
+    def photo_keys(self) -> set[str]:
+        return {self.cover_key} if self.cover_key else set()
+
     def to_json(self) -> dict[str, Any]:
-        return asdict(self)
+        # cover_src: what the browser shows — a temporary link to the uploaded photo, or the
+        # found cover's URL, or "" (then the frontend draws a cloth-bound cover).
+        return {**asdict(self), "cover_src": storage.photo_url(self.cover_key) or self.cover_url}

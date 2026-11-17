@@ -47,6 +47,24 @@ def table():
     return FakeTable()
 
 
+@pytest.fixture(autouse=True)
+def fake_storage(monkeypatch):
+    """No S3 in unit tests: photo links are predictable strings, deletions are recorded."""
+    from common import storage
+
+    deleted: list[str] = []
+    monkeypatch.setattr(
+        storage, "photo_url", lambda key: f"https://photos.test/{key}" if key else ""
+    )
+    monkeypatch.setattr(storage, "delete_photo", deleted.append)
+    monkeypatch.setattr(
+        storage,
+        "upload_form",
+        lambda key, content_type: {"url": "https://bucket.test/", "fields": {"key": key}},
+    )
+    return deleted
+
+
 def make_event(sub="user-1", email="anna@ucu.edu.ua", body=None, path=None):
     event = {"requestContext": {"authorizer": {"jwt": {"claims": {"sub": sub, "email": email}}}}}
     if path is not None:

@@ -80,7 +80,11 @@ function TopBar() {
             <div className="topbar__user">
               <span className="email">{name}</span>
               <span className="avatar" aria-hidden="true">
-                {name[0]?.toUpperCase()}
+                {profile?.avatar_src ? (
+                  <img src={profile.avatar_src} alt="" />
+                ) : (
+                  name[0]?.toUpperCase()
+                )}
               </span>
               <button className="btn-signout" onClick={signOut}>
                 Вийти

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import AvatarField from './AvatarField.jsx';
 import GenrePicker from './GenrePicker.jsx';
 
 const EMPTY = {
@@ -8,11 +9,13 @@ const EMPTY = {
   age: '',
   about: '',
   favorite_genres: [],
+  avatar_key: '',
+  avatar_src: '',
 };
 
 // Profile form, split into two sections so onboarding can show them as two steps:
 //   'contacts' — name/nickname + Telegram/phone (required)
-//   'about'    — age, a few words, favourite genres (optional)
+//   'about'    — photo, age, a few words, favourite genres (optional)
 // It always submits every editable field (PUT /profile replaces them all), including the ones
 // of a hidden section, taken from `initial`.
 export default function ProfileForm({
@@ -95,6 +98,12 @@ export default function ProfileForm({
 
       {sections.includes('about') && (
         <fieldset>
+          <AvatarField
+            name={data.display_name}
+            value={data}
+            onChange={(photo) => setData((d) => ({ ...d, ...photo }))}
+            error={errors.avatar_key}
+          />
           <div className="row-2 row-2--narrow">
             <label>
               Вік

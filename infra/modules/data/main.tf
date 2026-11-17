@@ -1,4 +1,5 @@
-# Single DynamoDB table (pk/sk) for all app entities + private bucket for book photos.
+# Single DynamoDB table (pk/sk) for all app entities + private bucket for photos
+# (avatars/<user>/..., covers/<user>/...).
 resource "aws_dynamodb_table" "main" {
   name         = "${var.name}-main"
   billing_mode = "PAY_PER_REQUEST"
@@ -45,10 +46,11 @@ resource "aws_s3_bucket_public_access_block" "photos" {
 }
 
 # Browsers upload/download directly with presigned URLs, so the site origin needs CORS.
+# POST: uploads use a presigned POST form (S3 enforces the size limit).
 resource "aws_s3_bucket_cors_configuration" "photos" {
   bucket = aws_s3_bucket.photos.id
   cors_rule {
-    allowed_methods = ["GET", "PUT"]
+    allowed_methods = ["GET", "PUT", "POST"]
     allowed_origins = var.cors_origins
     allowed_headers = ["*"]
     max_age_seconds = 3000

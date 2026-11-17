@@ -11,8 +11,10 @@ from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
 from typing import Any
 
+from common import storage
 from common.genres import is_genre
 from common.http import ValidationError
+from domain.media import KIND_AVATAR, is_own_photo_key
 
 NAME_MIN, NAME_MAX = 2, 60
 ABOUT_MAX = 600
@@ -56,6 +58,7 @@ class Profile:
     age: int | None = None
     about: str = ""
     favorite_genres: list[str] = field(default_factory=list)
+    avatar_key: str = ""  # S3 key of the profile photo, "" when there is none
     created_at: str = ""
     updated_at: str = ""
 
@@ -108,6 +111,10 @@ class Profile:
         elif len(genres) > MAX_FAVORITE_GENRES:
             errors["favorite_genres"] = f"Оберіть не більше {MAX_FAVORITE_GENRES} жанрів"
 
+        avatar_key = str(data.get("avatar_key") or "")
+        if avatar_key and not is_own_photo_key(avatar_key, KIND_AVATAR, user_id):
+            errors["avatar_key"] = "Фото не знайдено, завантажте його ще раз"
+
         if errors:
             raise ValidationError(errors)
 
@@ -121,6 +128,7 @@ class Profile:
             age=age,
             about=about,
             favorite_genres=genres,
+            avatar_key=avatar_key,
             created_at=existing.created_at if existing else ts,
             updated_at=ts,
         )
@@ -145,27 +153,37 @@ class Profile:
             age=int(age) if age is not None else None,  # boto3 returns numbers as Decimal
             about=item.get("about", ""),
             favorite_genres=list(item.get("favorite_genres", [])),
+            avatar_key=item.get("avatar_key", ""),
             created_at=item.get("created_at", ""),
             updated_at=item.get("updated_at", ""),
         )
 
     # ----- API representation -----
 
+    def photo_keys(self) -> set[str]:
+        return {self.avatar_key} if self.avatar_key else set()
+
+    def _with_avatar(self, data: dict[str, Any]) -> dict[str, Any]:
+        data["avatar_src"] = storage.photo_url(self.avatar_key)
+        return data
+
     def to_owner_json(self) -> dict[str, Any]:
         """Everything, for the owner of the profile."""
-        return asdict(self)
+        return self._with_avatar(asdict(self))
 
     def to_public_json(self) -> dict[str, Any]:
         """What other signed-in students see: who it is and how to reach them."""
         data = asdict(self)
         del data["created_at"], data["updated_at"]
-        return data
+        return self._with_avatar(data)
 
     def to_summary_json(self) -> dict[str, Any]:
         """Short card for lists (matches): no contacts — those are on the profile page."""
-        return {
-            "user_id": self.user_id,
-            "display_name": self.display_name,
-            "about": self.about,
-            "favorite_genres": self.favorite_genres,
-        }
+        return self._with_avatar(
+            {
+                "user_id": self.user_id,
+                "display_name": self.display_name,
+                "about": self.about,
+                "favorite_genres": self.favorite_genres,
+            }
+        )

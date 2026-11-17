@@ -1,9 +1,13 @@
 import { genreLabel } from '../genres.js';
+import { Portrait } from './AvatarField.jsx';
 
-// The ex-libris card: name, age, a fleuron and contacts (own profile and other people's).
+// The ex-libris card: photo (if any), name, age, a fleuron and contacts.
 export function IdentityCard({ profile }) {
   return (
     <aside className="card identity">
+      {profile.avatar_src && (
+        <Portrait src={profile.avatar_src} name={profile.display_name} size="lg" />
+      )}
       <h1>{profile.display_name}</h1>
       {profile.age && <p className="identity__meta">{profile.age} р.</p>}
       <span className="identity__fleuron" aria-hidden="true">

@@ -4,10 +4,27 @@ The owner always comes from the token, never from the request, so a user can onl
 items under their own USER#<id> partition: someone else's id simply returns 404.
 """
 
+import logging
 from collections.abc import Callable
 from typing import Any
 
+from common import storage
 from common.http import ApiError, current_user, json_body
+
+log = logging.getLogger(__name__)
+
+
+def forget_photos(keys: set[str]) -> None:
+    """Delete photos that are no longer used. A failure here must not fail the request."""
+    for key in keys:
+        try:
+            storage.delete_photo(key)
+        except Exception:  # noqa: BLE001 - best effort clean-up
+            log.exception("could not delete photo %s", key)
+
+
+def _photos(entity) -> set[str]:
+    return entity.photo_keys() if hasattr(entity, "photo_keys") else set()
 
 
 class OwnedCollectionApi:
@@ -62,6 +79,7 @@ class OwnedCollectionApi:
         existing = self._own(repo, owner_id, self._item_id(event))
         entity = self.entity.from_input(owner_id, json_body(event), existing=existing)
         repo.save(entity)
+        forget_photos(_photos(existing) - _photos(entity))  # a replaced cover
         return {self.name: entity.to_json()}
 
     def delete(self, event, context):
@@ -69,4 +87,5 @@ class OwnedCollectionApi:
         repo = self.repo_factory()
         entity = self._own(repo, owner_id, self._item_id(event))
         repo.delete(owner_id, entity.id)
+        forget_photos(_photos(entity))
         return {"deleted": entity.id}

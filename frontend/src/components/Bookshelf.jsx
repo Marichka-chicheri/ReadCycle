@@ -1,41 +1,24 @@
 // Realistic wooden furniture for books: <Cabinet> (big oak bookcase on the main page),
 // <Shelf> (one shelf: inside a cabinet or wall-mounted in a profile) and <BookSpine>.
-// Books are drawn, not photographed: a cloth-bound spine whose colour, height and width
-// are derived from the title, so the same book always looks the same.
+// Spines are drawn cloth bindings; hovering one shows a card with the real cover and details.
 
-const CLOTH = [
-  '#5c1724', // бордо
-  '#7a2a2f', // теракотово-винний
-  '#2f4a3a', // пляшкова зелень
-  '#1f2f4a', // чорнильно-синій
-  '#4a2340', // слива
-  '#5a3a22', // тютюн
-  '#3d4650', // графіт
-  '#8a6a2e', // охра
-  '#d9c7a3', // небілений льон
-  '#2a2320', // майже чорний
-];
+import { useRef, useState } from 'react';
+import { genreLabel, offerLabel } from '../genres.js';
+import BookCover from './BookCover.jsx';
+import { spineStyle } from './spine.js';
 
-function hash(str) {
-  let h = 2166136261;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return h >>> 0;
-}
+export { spineStyle };
 
-export function spineStyle(title = '', author = '') {
-  const h = hash(`${title}|${author}`);
-  const color = CLOTH[h % CLOTH.length];
-  const height = 148 + ((h >> 4) % 50); // 148–197 px
-  const width = 36 + ((h >> 10) % 16) + Math.min(title.length, 26) * 0.45; // ~36–64 px
-  const light = color === '#d9c7a3';
-  const bands = (h >> 16) % 3; // 0: none, 1: top+bottom, 2: double
-  return { color, height, width: Math.round(width), light, bands };
-}
-
-export function BookSpine({ title, author, offer, lean = 0, onClick, selected = false }) {
+export function BookSpine({
+  title,
+  author,
+  offer,
+  lean = 0,
+  onClick,
+  selected = false,
+  onPeek,
+  onUnpeek,
+}) {
   const s = spineStyle(title, author);
   // A plain <div> when the book is decorative; a <button> only when it can be clicked.
   const Tag = onClick ? 'button' : 'div';
@@ -50,6 +33,10 @@ export function BookSpine({ title, author, offer, lean = 0, onClick, selected = 
   return (
     <Tag
       {...(onClick ? { type: 'button', onClick } : {})}
+      onMouseEnter={onPeek}
+      onMouseLeave={onUnpeek}
+      onFocus={onPeek}
+      onBlur={onUnpeek}
       className={cls}
       data-bands={s.bands}
       style={{
@@ -60,7 +47,8 @@ export function BookSpine({ title, author, offer, lean = 0, onClick, selected = 
         // a leaning book needs a little room so it rests on its neighbour instead of cutting into it
         marginLeft: lean ? '14px' : undefined,
       }}
-      title={author ? `${title} — ${author}` : title}
+      title={onPeek ? undefined : author ? `${title} — ${author}` : title}
+      aria-label={author ? `${title} — ${author}` : title}
     >
       {/* a gold silk bookmark marks books that are given away for free */}
       {offer === 'give' && <span className="spine__ribbon" aria-hidden="true" />}
@@ -70,27 +58,65 @@ export function BookSpine({ title, author, offer, lean = 0, onClick, selected = 
   );
 }
 
-// One shelf. `variant="wall"` = floating plank with brackets (profile),
-// default = shelf inside a <Cabinet>.
-export function Shelf({ books = [], variant = 'cabinet', empty, onBookClick, children }) {
+const PEEK_HALF_WIDTH = 150; // half of .peek width, keeps the card inside the shelf
+
+// Card that floats above a spine on hover: the cover (photo or drawn) and the main facts.
+function Peek({ book, x, bottom }) {
   return (
-    <div className={`shelf shelf--${variant}`}>
+    <div className="peek" style={{ left: x, bottom }} role="tooltip">
+      <div className="peek__cover">
+        <BookCover title={book.title} author={book.author} src={book.cover_src} />
+      </div>
+      <div className="peek__text">
+        <strong>{book.title}</strong>
+        <span>{book.author}</span>
+        <small>
+          {[book.genre && genreLabel(book.genre), book.offer && offerLabel(book.offer)]
+            .filter(Boolean)
+            .join(' · ')}
+        </small>
+        {book.owner_name && <small>з полиці: {book.owner_name}</small>}
+      </div>
+    </div>
+  );
+}
+
+// One shelf. `variant="wall"` = floating plank with brackets (profile),
+// default = shelf inside a <Cabinet>. With `onBookClick`, spines are clickable and show a
+// preview card on hover.
+export function Shelf({ books = [], variant = 'cabinet', empty, onBookClick, children }) {
+  const ref = useRef(null);
+  const [peek, setPeek] = useState(null); // { book, x, bottom }
+
+  const showPeek = (book) => (e) => {
+    const spine = e.currentTarget;
+    const width = ref.current?.clientWidth || 0;
+    const center = spine.offsetLeft + spine.offsetWidth / 2;
+    const x = Math.min(Math.max(center, PEEK_HALF_WIDTH), width - PEEK_HALF_WIDTH);
+    setPeek({ book, x, bottom: spine.offsetHeight + 34 });
+  };
+
+  return (
+    <div className={`shelf shelf--${variant}`} ref={ref}>
       <div className="shelf__books">
         {books.length === 0 && empty && <p className="shelf__empty">{empty}</p>}
         {books.map((b, i) => (
           <BookSpine
-            key={b.id || `${b.title}-${i}`}
+            key={b.book_id || b.id || `${b.title}-${i}`}
             title={b.title}
             author={b.author}
             offer={b.offer}
             // the last book on a shelf that is not full leans on its neighbour
             lean={i === books.length - 1 && books.length > 2 && books.length < 9 ? -6 : 0}
             onClick={onBookClick ? () => onBookClick(b) : undefined}
+            onPeek={onBookClick ? showPeek(b) : undefined}
+            onUnpeek={onBookClick ? () => setPeek(null) : undefined}
           />
         ))}
         {children}
       </div>
       <div className="shelf__plank" aria-hidden="true" />
+      {peek && <Peek {...peek} />}
     </div>
   );
 }

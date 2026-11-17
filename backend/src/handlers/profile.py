@@ -1,6 +1,7 @@
 """GET /profile — the signed-in user's own profile ({"profile": null} before onboarding).
 PUT /profile — create or update it (the same call is used by onboarding and by editing)."""
 
+from common.crud import forget_photos
 from common.db import main_table
 from common.http import api_handler, current_user, json_body
 from domain.profile import Profile
@@ -22,6 +23,9 @@ def get_handler(event, context):
 def put_handler(event, context):
     user_id, email = current_user(event)
     repo = get_repo()
-    profile = Profile.from_input(user_id, email, json_body(event), existing=repo.get(user_id))
+    existing = repo.get(user_id)
+    profile = Profile.from_input(user_id, email, json_body(event), existing=existing)
     repo.save(profile)
+    if existing:
+        forget_photos(existing.photo_keys() - profile.photo_keys())  # a replaced photo
     return {"profile": profile.to_owner_json()}

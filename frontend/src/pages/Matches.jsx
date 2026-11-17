@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
+import { Portrait } from '../components/AvatarField.jsx';
 import BookCover from '../components/BookCover.jsx';
 import { genreLabel } from '../genres.js';
 
@@ -26,7 +27,7 @@ function LetterLine({ m }) {
   return (
     <li>
       <span className="letter__photo">
-        <BookCover title={m.book.title} author={m.book.author} size="mini" />
+        <BookCover title={m.book.title} author={m.book.author} src={m.book.cover_src} size="mini" />
       </span>
       <span className="letter__text">
         <span className="letter__book">{m.book.title}</span>
@@ -45,6 +46,11 @@ function MatchCard({ match }) {
   return (
     <article className="letter">
       <p className="letter__date">ReadCycle, {TODAY}</p>
+      {user.avatar_src && (
+        <span className="letter__portrait">
+          <Portrait src={user.avatar_src} name={user.display_name} size="sm" />
+        </span>
+      )}
       <p className="letter__meta">
         Від: <strong>{user.display_name}</strong>
         <br />

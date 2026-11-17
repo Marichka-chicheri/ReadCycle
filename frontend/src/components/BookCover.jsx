@@ -1,10 +1,23 @@
-import { spineStyle } from './Bookshelf.jsx';
+import { useEffect, useState } from 'react';
+import { spineStyle } from './spine.js';
 
-// Front cover of a drawn book: the same cloth colour as its spine, a gilt frame, embossed title.
-// size="mini" is a small thumbnail (title only), e.g. pasted into a match letter.
-export default function BookCover({ title, author, size }) {
-  const s = spineStyle(title, author);
+// A book's front cover. With `src` it shows the photo (uploaded or found); without one, or if the
+// photo fails to load, it draws a cloth-bound cover in the same colour as the book's spine.
+// size="mini" is a small thumbnail (e.g. pasted into a match letter).
+export default function BookCover({ title, author, src, size }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [src]);
   const mini = size === 'mini';
+
+  if (src && !failed) {
+    return (
+      <div className={`cover cover--photo${mini ? ' cover--mini' : ''}`}>
+        <img src={src} alt={title} loading="lazy" onError={() => setFailed(true)} />
+      </div>
+    );
+  }
+
+  const s = spineStyle(title, author);
   const cls = ['cover', s.light && 'cover--light', mini && 'cover--mini'].filter(Boolean).join(' ');
   return (
     <div className={cls} style={{ '--c': s.color }}>

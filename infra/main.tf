@@ -21,6 +21,7 @@ locals {
     catalog_list     = { route_key = "GET /books", handler = "handlers.catalog.list_handler", auth = true }
     matches          = { route_key = "GET /matches", handler = "handlers.matches.handler", auth = true }
     user_get         = { route_key = "GET /users/{id}", handler = "handlers.users.handler", auth = true }
+    uploads_create   = { route_key = "POST /uploads", handler = "handlers.uploads.handler", auth = true }
   }
 }
 
