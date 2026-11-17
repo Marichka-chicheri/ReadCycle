@@ -1288,7 +1288,7 @@ select {
   color: var(--ink-soft);
   font-size: 1rem;
 }
-.page-intro a {
+.page-intro p a {
   color: var(--wine-700);
   font-weight: 600;
   text-underline-offset: 3px;
