@@ -32,9 +32,9 @@
   --oak-deep: #3a2312;
 
   /* shape */
-  --radius-lg: 28px;
-  --radius-md: 18px;
-  --radius-sm: 10px;
+  --radius-lg: 6px;
+  --radius-md: 6px;
+  --radius-sm: 3px;
   --shadow-soft: 0 18px 40px -22px rgba(42, 9, 16, 0.55);
   --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 24px 48px -30px rgba(42, 9, 16, 0.6);
 
@@ -50,7 +50,7 @@
 
   font-family: var(--font-sans);
   color: var(--ink);
-  background: var(--taupe-400);
+  background: #e4d7c2;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -65,7 +65,7 @@ body {
     var(--paper),
     radial-gradient(1200px 600px at 15% -10%, rgba(255, 245, 230, 0.35), transparent 60%),
     radial-gradient(900px 500px at 110% 20%, rgba(92, 23, 36, 0.12), transparent 60%),
-    linear-gradient(180deg, #b8a287 0%, #a68d72 100%);
+    linear-gradient(180deg, #eae0cf 0%, #ddcdb4 100%);
   background-attachment: fixed;
 }
 
@@ -304,19 +304,18 @@ button,
   font-weight: 600;
   letter-spacing: 0.02em;
   border: 0;
-  border-radius: 999px;
-  background: linear-gradient(180deg, var(--wine-600), var(--wine-800));
+  border-radius: 3px;
+  background: var(--wine-700);
   color: var(--cream-50);
   cursor: pointer;
   text-decoration: none;
-  box-shadow: 0 10px 22px -14px rgba(42, 9, 16, 0.9);
   transition:
     transform 0.15s,
     filter 0.15s;
 }
 button:hover,
 .btn:hover {
-  filter: brightness(1.08);
+  filter: brightness(0.9);
 }
 button:active {
   transform: translateY(1px);
@@ -376,73 +375,216 @@ button.link {
   color: var(--cream-50);
 }
 
-/* ---------------- auth pages ---------------- */
+/* ---------------- auth pages: an open antique book ---------------- */
 
-.auth {
-  display: grid;
-  grid-template-columns: minmax(320px, 440px) 1fr;
-  gap: 28px;
-  align-items: stretch;
+/* the dim library behind the book (full-bleed, behind everything) */
+.auth-scene::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(ellipse at 50% 45%, rgba(20, 6, 8, 0.05), rgba(20, 6, 8, 0.5) 80%),
+    url('/img/library-bg.jpg') center / cover no-repeat,
+    #24120c;
 }
-.auth .card h1 {
-  margin-bottom: 0;
-}
-.auth__aside {
+.auth-scene {
+  /* own stacking context, so the fixed backdrop sits above the page colour but under the book */
   position: relative;
+  z-index: 0;
+  padding: 8px 0 24px;
+}
+.tome {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 14px;
+  border-radius: 10px;
+  /* burgundy leather binding */
+  background:
+    var(--paper), radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.06), transparent 60%),
+    linear-gradient(160deg, #5a1522, #34070f);
+  box-shadow:
+    inset 0 0 0 1px rgba(201, 169, 97, 0.35),
+    inset 0 0 0 5px #3b0c15,
+    inset 0 0 0 6px rgba(201, 169, 97, 0.25),
+    0 50px 80px -30px rgba(0, 0, 0, 0.85),
+    0 20px 30px -20px rgba(0, 0, 0, 0.6);
+}
+.tome__page {
+  position: relative;
+  min-height: 580px;
+  padding: 56px 58px 72px;
+  background:
+    var(--paper),
+    radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(139, 98, 50, 0.16) 100%), #f4ead6;
+}
+.tome__page--verso {
+  border-radius: 4px 0 0 4px;
+  background:
+    linear-gradient(90deg, transparent 78%, rgba(70, 40, 15, 0.08) 92%, rgba(50, 25, 8, 0.28) 100%),
+    var(--paper),
+    radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(139, 98, 50, 0.16) 100%), #f4ead6;
+  /* the edges of the pages underneath */
+  box-shadow:
+    -2px 0 0 #e7dbc2,
+    -4px 0 0 #d9caa9,
+    -6px 0 0 #e7dbc2;
+}
+.tome__page--recto {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 32px;
-  padding: 40px 40px 28px;
-  border-radius: var(--radius-lg);
+  border-radius: 0 4px 4px 0;
   background:
-    var(--paper), radial-gradient(500px 300px at 80% 0%, rgba(201, 169, 97, 0.18), transparent 70%),
-    linear-gradient(160deg, var(--wine-700), var(--wine-900));
-  color: var(--cream-100);
-  overflow: hidden;
-  box-shadow: var(--shadow-soft);
+    linear-gradient(
+      270deg,
+      transparent 78%,
+      rgba(70, 40, 15, 0.08) 92%,
+      rgba(50, 25, 8, 0.28) 100%
+    ),
+    var(--paper),
+    radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(139, 98, 50, 0.16) 100%), #f4ead6;
+  box-shadow:
+    2px 0 0 #e7dbc2,
+    4px 0 0 #d9caa9,
+    6px 0 0 #e7dbc2;
 }
-.auth__quote {
-  max-width: 480px;
+.tome__ornament {
+  display: block;
+  margin-bottom: 18px;
+  color: var(--gold);
+  font-size: 1.6rem;
+  text-align: center;
+}
+.tome__kicker {
+  margin: 0 0 28px;
+  text-align: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--taupe-600);
+}
+.tome__quote {
+  margin: 0 0 24px;
+  font-family: var(--font-serif);
+  font-size: 1.85rem;
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--ink);
+}
+.dropcap {
+  float: left;
+  margin: 6px 10px 0 0;
+  font-style: normal;
+  font-weight: 600;
+  font-size: 4.6rem;
+  line-height: 0.78;
+  color: var(--wine-700);
+}
+.tome__text {
   margin: 0;
   font-family: var(--font-serif);
-  font-size: 2rem;
-  font-style: italic;
-  line-height: 1.2;
-  color: var(--cream-50);
+  font-size: 1.15rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
 }
-.auth__quote small {
-  display: block;
-  margin-top: 12px;
-  font-family: var(--font-sans);
-  font-style: normal;
-  font-size: 0.8rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--gold-soft);
-}
-
-/* ---------------- home ---------------- */
-
-.hero {
+/* faded ex-libris stamp */
+.tome__stamp {
+  position: absolute;
+  right: 58px;
+  bottom: 74px;
   display: grid;
-  grid-template-columns: 1.3fr 1fr;
-  gap: 28px;
-  align-items: stretch;
-  margin-bottom: 36px;
-}
-.hero .card {
-  padding: 40px 44px;
-}
-.preview-ribbon {
-  display: inline-block;
-  margin: 0 0 14px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: rgba(252, 248, 240, 0.85);
-  color: var(--wine-700);
-  font-size: 0.78rem;
+  place-items: center;
+  align-content: center;
+  width: 108px;
+  height: 108px;
+  border: 2px solid rgba(163, 38, 58, 0.55);
+  border-radius: 50%;
+  outline: 1px solid rgba(163, 38, 58, 0.4);
+  outline-offset: -8px;
+  transform: rotate(-14deg);
+  color: rgba(163, 38, 58, 0.62);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
   font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.tome__stamp small {
+  font-size: 0.6rem;
+  letter-spacing: 0.3em;
+}
+.tome__folio {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 26px;
+  text-align: center;
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--taupe-500);
+}
+
+/* the form, typed onto the right-hand page */
+.tome .card {
+  padding: 0;
+  gap: 18px;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+.tome .card h1 {
+  margin: -6px 0 6px;
+  font-size: 2.6rem;
+}
+.tome .eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+}
+.tome label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--taupe-600);
+}
+.tome input {
+  padding: 8px 0 7px;
+  border: 0;
+  border-bottom: 1px solid rgba(43, 26, 23, 0.35);
+  border-radius: 0;
+  background: transparent;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 1rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink);
+}
+.tome input:focus {
+  border-bottom-color: var(--wine-600);
+  box-shadow: 0 1px 0 var(--wine-600);
+}
+.tome button:not(.link) {
+  margin-top: 6px;
+  border-radius: 3px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.82rem;
+}
+.tome .card > p {
+  margin: 4px 0 0;
+  font-size: 0.9rem;
+}
+.tome .error,
+.tome .ok {
+  border-radius: 3px;
 }
 
 /* ---------------- forms: profile ---------------- */
@@ -543,7 +685,7 @@ textarea {
 }
 .chip {
   padding: 7px 14px;
-  border-radius: 999px;
+  border-radius: 3px;
   background: var(--cream-50);
   color: var(--ink-soft);
   font-size: 0.82rem;
@@ -1132,8 +1274,32 @@ select {
   line-height: 1;
 }
 
-/* ---------------- catalog filters ---------------- */
+/* ---------------- main page ---------------- */
 
+.page-intro {
+  max-width: 760px;
+  margin: 4px 0 40px;
+}
+.page-intro h1 {
+  margin-bottom: 14px;
+}
+.page-intro p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 1rem;
+}
+.page-intro a {
+  color: var(--wine-700);
+  font-weight: 600;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+.catalog-more {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--cream-100);
+}
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -1142,78 +1308,127 @@ select {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
-.filters {
-  position: sticky;
-  top: 80px;
-  z-index: 10;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 26px;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  background: var(--paper), rgba(246, 238, 223, 0.94);
-  backdrop-filter: blur(6px);
-  box-shadow: var(--shadow-soft);
-}
-.filters select {
-  flex: 0 1 200px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-}
-.filters__search {
+
+/* filters: a dark oak rail inside the cabinet, under the crown */
+.cabinet__toolbar {
   position: relative;
-  flex: 1 1 240px;
-  display: block;
+  margin: 22px 0 0;
+  padding: 16px 24px 18px;
+  background: var(--grain-h), linear-gradient(180deg, #4c2f19, #3a2312);
+  background-size:
+    800px 240px,
+    auto;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 220, 170, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+    inset 0 8px 14px -8px rgba(0, 0, 0, 0.6);
 }
-.filters__search svg {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--taupe-600);
+.cabinet__toolbar + .cabinet__inner {
+  margin-top: 14px;
 }
-.filters__search input {
+.rail {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.6fr) minmax(130px, 1fr) minmax(120px, 0.8fr) auto auto;
+  gap: 26px;
+  align-items: end;
+}
+.rail__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.rail__label {
+  font-family: var(--font-sans);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(230, 211, 163, 0.7);
+}
+.rail input,
+.rail select {
   width: 100%;
-  padding: 10px 14px 10px 42px;
-}
-.segmented {
-  display: inline-flex;
-  padding: 3px;
-  border-radius: var(--radius-sm);
-  background: var(--cream-200);
-}
-.segmented button {
-  padding: 8px 14px;
-  border-radius: 7px;
-  background: transparent;
-  color: var(--ink-soft);
-  font-size: 0.85rem;
+  padding: 4px 22px 6px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(230, 211, 163, 0.35);
+  border-radius: 0;
+  background-color: transparent;
+  color: var(--cream-50);
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 500;
   box-shadow: none;
 }
-.segmented button:hover {
-  filter: none;
-  color: var(--wine-700);
+.rail input::placeholder {
+  color: rgba(246, 238, 223, 0.4);
+  font-style: italic;
 }
-.segmented button.on {
-  background: var(--wine-700);
+.rail input:focus,
+.rail select:focus {
+  border-bottom-color: var(--gold);
+  box-shadow: none;
+}
+.rail select {
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--gold) 50%),
+    linear-gradient(135deg, var(--gold) 50%, transparent 50%);
+  background-position:
+    calc(100% - 9px) 55%,
+    calc(100% - 4px) 55%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+.rail option {
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+}
+.rail__tabs {
+  display: flex;
+  gap: 18px;
+}
+.rail__tabs button {
+  padding: 4px 0 6px;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
+  background: none;
+  box-shadow: none;
+  color: rgba(246, 238, 223, 0.6);
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.rail__tabs button:hover {
+  filter: none;
   color: var(--cream-50);
 }
-.filters__meta {
-  display: flex;
-  gap: 14px;
-  align-items: center;
-  margin-left: auto;
-  padding: 0 6px;
-  font-size: 0.82rem;
-  color: var(--taupe-600);
+.rail__tabs button.on {
+  color: var(--cream-50);
+  border-bottom-color: var(--gold);
 }
-.catalog-more {
-  margin: 18px 0 0;
-  text-align: center;
-  font-size: 0.85rem;
-  color: var(--cream-100);
+.rail__meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding-bottom: 6px;
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  color: rgba(230, 211, 163, 0.75);
+  white-space: nowrap;
+}
+.rail__meta button {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--gold-soft);
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 /* =========================================================================
@@ -1530,14 +1745,28 @@ button.spine--clickable:active {
 /* ---------------- responsive ---------------- */
 
 @media (max-width: 860px) {
+  .tome {
+    grid-template-columns: 1fr;
+  }
+  .tome__page--verso {
+    display: none;
+  }
+  .tome__page {
+    min-height: 0;
+    padding: 40px 28px 64px;
+  }
+  .rail {
+    grid-template-columns: 1fr 1fr;
+  }
+  .rail__field--search {
+    grid-column: 1 / -1;
+  }
   .book-view {
     grid-template-columns: 1fr;
   }
   .book-view .cover {
     max-width: 220px;
   }
-  .auth,
-  .hero,
   .profile__top,
   .row-2 {
     grid-template-columns: 1fr;
@@ -1569,10 +1798,376 @@ button.spine--clickable:active {
   }
 }
 
-/* the wall shelf inside the auth panel needs room for its brackets */
-.auth__aside .shelf {
-  margin: 0 -10px 40px;
+/* =========================================================================
+   Long text: never let a long word or a run of symbols break the layout
+   ========================================================================= */
+
+h1,
+h2,
+h3,
+p,
+dd,
+.chip,
+.contact-list a {
+  overflow-wrap: anywhere;
 }
-.auth__aside .shelf__plank {
-  border-radius: 3px;
+.topbar__user .email {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.identity h1 {
+  max-width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.profile__details,
+.book-view__info,
+.drawer__bed > * {
+  min-width: 0;
+}
+.catalog-card {
+  min-width: 0;
+  overflow: hidden;
+}
+.catalog-card__title,
+.catalog-card__author,
+.catalog-card__meta,
+.catalog-card__note {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.catalog-card__title {
+  -webkit-line-clamp: 3;
+}
+.catalog-card__author,
+.catalog-card__meta {
+  -webkit-line-clamp: 1;
+}
+.catalog-card__note {
+  -webkit-line-clamp: 2;
+}
+.book-view__info h2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cover__title {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.cover__author {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================================================
+   One style everywhere: paper pages, leather covers, small square corners
+   (matches the open book on the login page and the oak furniture)
+   ========================================================================= */
+
+.eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+}
+/* cream cards look like book pages */
+.card {
+  background:
+    var(--paper),
+    radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(139, 98, 50, 0.14) 100%), #f4ead6;
+  box-shadow:
+    inset 0 0 0 1px rgba(139, 98, 50, 0.12),
+    0 24px 44px -28px rgba(42, 9, 16, 0.75);
+}
+/* wine cards look like leather covers with a gilt frame */
+.card--wine {
+  background:
+    var(--paper), radial-gradient(ellipse at 30% 15%, rgba(255, 255, 255, 0.07), transparent 60%),
+    linear-gradient(160deg, #5a1522, #34070f);
+  box-shadow:
+    inset 0 0 0 6px #3b0c15,
+    inset 0 0 0 7px rgba(201, 169, 97, 0.45),
+    inset 0 0 0 11px #3b0c15,
+    inset 0 0 0 12px rgba(201, 169, 97, 0.2),
+    0 30px 50px -28px rgba(0, 0, 0, 0.8);
+}
+.identity .monogram {
+  background: radial-gradient(circle at 35% 30%, #5f1a27, #3a0b14);
+  color: var(--gold-soft);
+  box-shadow:
+    0 0 0 1px var(--gold),
+    0 0 0 6px #3b0c15,
+    0 0 0 7px rgba(201, 169, 97, 0.45),
+    inset 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+/* buttons: quiet, rectangular */
+button,
+.btn {
+  letter-spacing: 0.02em;
+}
+.btn--ghost {
+  box-shadow: inset 0 0 0 1px var(--wine-700);
+}
+.btn--cream {
+  box-shadow:
+    inset 0 0 0 1px rgba(139, 98, 50, 0.25),
+    0 10px 22px -14px rgba(42, 9, 16, 0.9);
+}
+/* genres as small library labels */
+.chip {
+  border-radius: 2px;
+}
+.chip--static {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(116, 32, 51, 0.35);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+}
+/* section headings with a thin rule, like chapter titles */
+.section-head {
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(74, 18, 29, 0.25);
+}
+.section-head .muted {
+  color: var(--ink-soft);
+}
+.wall {
+  border-radius: 4px;
+}
+.modal__panel {
+  background:
+    var(--paper),
+    radial-gradient(ellipse at 50% 50%, transparent 60%, rgba(139, 98, 50, 0.14) 100%), #f4ead6;
+}
+
+/* identity: a delicate ex-libris on cream paper, not a leather card */
+.identity {
+  gap: 10px;
+  padding: 48px 34px 34px;
+  outline: 1px solid rgba(116, 32, 51, 0.18);
+  outline-offset: -12px;
+}
+.identity .monogram {
+  width: 104px;
+  height: 104px;
+  margin-bottom: 6px;
+  background: radial-gradient(circle at 40% 35%, #fbf6ec, #efe3cc);
+  color: var(--wine-700);
+  font-size: 2.5rem;
+  font-weight: 500;
+  box-shadow:
+    0 0 0 1px rgba(116, 32, 51, 0.35),
+    0 0 0 5px #f4ead6,
+    0 0 0 6px rgba(201, 169, 97, 0.6),
+    0 12px 22px -12px rgba(74, 18, 29, 0.45);
+}
+.identity h1 {
+  margin: 4px 0 0;
+  color: var(--wine-800);
+  font-size: 2.1rem;
+  font-weight: 500;
+  font-style: italic;
+}
+.identity__meta {
+  margin: 0;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  color: var(--taupe-600);
+}
+.identity__fleuron {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin: 10px 0 0;
+  color: var(--gold);
+  font-size: 1.1rem;
+}
+.identity__fleuron::before,
+.identity__fleuron::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201, 169, 97, 0.6));
+}
+.identity__fleuron::after {
+  background: linear-gradient(270deg, transparent, rgba(201, 169, 97, 0.6));
+}
+.identity .contact-list {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 0;
+  font-family: var(--font-serif);
+  font-size: 1.08rem;
+}
+.identity .contact-list li {
+  align-items: baseline;
+  gap: 8px;
+  padding: 5px 0;
+}
+.identity .contact-list li span {
+  color: var(--taupe-600);
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 0.95rem;
+  letter-spacing: 0;
+  text-transform: none;
+}
+/* dotted leader between label and value, like a table of contents */
+.identity .contact-list li::after {
+  content: '';
+  order: 1;
+  flex: 1;
+  min-width: 12px;
+  border-bottom: 1px dotted rgba(116, 32, 51, 0.3);
+  transform: translateY(-4px);
+}
+.identity .contact-list li > :last-child {
+  order: 2;
+}
+.identity .contact-list li {
+  color: var(--ink);
+}
+.identity .contact-list a {
+  color: var(--wine-700);
+  text-decoration: none;
+}
+.identity .contact-list a:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================================
+   Type system — only two typefaces, both upright:
+   Cormorant Garamond for headings and reading text, Manrope for everything else.
+   The typewriter face stays only on "typed" objects: wishlist catalogue cards and the login book.
+   ========================================================================= */
+
+.eyebrow {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+.serif-italic {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--wine-600);
+}
+.book-view__author,
+.shelf__empty,
+.tome__folio {
+  font-style: normal;
+}
+.chip--static {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  letter-spacing: 0.02em;
+}
+.identity h1 {
+  font-style: normal;
+  font-weight: 600;
+}
+.identity__meta {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+}
+.identity .contact-list {
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+}
+.identity .contact-list li span {
+  font-family: var(--font-sans);
+  font-style: normal;
+  font-size: 0.8rem;
+}
+
+/* ---------------- refinements: flat buttons, shelves straight on the page, home backdrop ---------- */
+
+.section-head__action {
+  padding: 10px 18px;
+  font-size: 0.86rem;
+}
+
+/* the profile shelves hang straight on the page, no beige panel behind them */
+.wall {
+  padding: 24px 0 8px;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+/* main page: a light, blurred reading room behind the cabinet */
+.home-scene {
+  position: relative;
+  z-index: 0;
+}
+.home-scene::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(234, 224, 207, 0.85) 0%,
+      rgba(234, 224, 207, 0.35) 45%,
+      rgba(221, 205, 180, 0.7) 100%
+    ),
+    url('/img/reading-room-bg.jpg') center / cover no-repeat;
+}
+
+/* text that sits straight on the (now light) page */
+.loading,
+.catalog-more {
+  color: var(--ink-soft);
+}
+.catalog-card--new {
+  color: var(--gold-soft);
+}
+
+/* header: give the menu and the user block some air */
+.nav {
+  gap: 18px;
+}
+.nav a {
+  padding: 0 22px;
+}
+.nav a::after {
+  left: 22px;
+  right: 22px;
+}
+.topbar__inner {
+  gap: 44px;
+}
+.topbar__user {
+  gap: 20px;
+  padding-left: 40px;
+}
+@media (max-width: 860px) {
+  .nav {
+    gap: 4px;
+  }
+  .nav a {
+    padding: 0 10px;
+  }
+  .topbar__inner {
+    gap: 12px;
+  }
+  .topbar__user {
+    gap: 10px;
+    padding-left: 12px;
+  }
 }

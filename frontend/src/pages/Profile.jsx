@@ -33,7 +33,7 @@ function Contacts({ profile }) {
       )}
       <li>
         <span>Пошта</span>
-        {profile.email}
+        <a href={`mailto:${profile.email}`}>{profile.email}</a>
       </li>
     </ul>
   );
@@ -48,12 +48,15 @@ export default function Profile() {
   return (
     <section className="profile">
       <div className="profile__top">
-        <aside className="card card--wine identity">
+        <aside className="card identity">
           <div className="monogram" aria-hidden="true">
             {initials(profile.display_name)}
           </div>
           <h1>{profile.display_name}</h1>
           {profile.age && <p className="identity__meta">{profile.age} р.</p>}
+          <span className="identity__fleuron" aria-hidden="true">
+            ❦
+          </span>
           <Contacts profile={profile} />
         </aside>
 

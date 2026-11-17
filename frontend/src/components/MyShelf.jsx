@@ -64,10 +64,7 @@ export default function MyShelf() {
             : `${books.length} ${plural(books.length, 'книга', 'книги', 'книг')}` +
               (giveCount ? ` · ${giveCount} віддаю безкоштовно` : '')}
         </span>
-        <button
-          className="btn--cream section-head__action"
-          onClick={() => setDialog({ mode: 'add' })}
-        >
+        <button className="section-head__action" onClick={() => setDialog({ mode: 'add' })}>
           + Додати книгу
         </button>
       </div>

@@ -64,38 +64,30 @@ export default function Home() {
         : 'Шафа поки порожня. Будь першою — додай книги на свою полицю';
 
   return (
-    <section>
-      <div className="hero">
-        <div className="card">
-          <span className="eyebrow">Обмін книгами між студентами УКУ</span>
-          <h1>
-            Віддай прочитане — <span className="serif-italic">знайди своє</span>
-          </h1>
-          <p className="muted">
-            Тут стоять книги, які інші студенти готові віддати чи обміняти. Натисни на корінець, щоб
-            роздивитися книгу ближче.
-          </p>
-        </div>
-        <div className="card card--wine">
-          <span className="eyebrow" style={{ color: 'var(--gold-soft)' }}>
-            Твій хід
-          </span>
-          <h2>Постав свої книги на полицю</h2>
-          <p>Додай книги, які готова віддати, і заповни вішліст: так інші знайдуть тебе.</p>
-          <Link to="/profile" className="btn btn--cream" style={{ alignSelf: 'flex-start' }}>
-            До моєї полиці
-          </Link>
-        </div>
-      </div>
+    <section className="home-scene">
+      <header className="page-intro">
+        <span className="eyebrow">Обмін книгами між студентами УКУ</span>
+        <h1>
+          Віддай прочитане — <span className="serif-italic">знайди своє</span>
+        </h1>
+        <p>
+          У шафі стоять книги, які інші студенти готові віддати чи обміняти. Натисни на корінець,
+          щоб роздивитися книгу. <Link to="/profile">До моєї полиці →</Link>
+        </p>
+      </header>
 
-      <CatalogFilters
-        value={{ ...filters, q }}
-        onChange={onFilters}
-        total={result ? result.total : null}
-      />
       {error && <p className="error">Не вдалося завантажити каталог: {error}</p>}
 
-      <Cabinet title="ReadCycle">
+      <Cabinet
+        title="ReadCycle"
+        toolbar={
+          <CatalogFilters
+            value={{ ...filters, q }}
+            onChange={onFilters}
+            total={result ? result.total : null}
+          />
+        }
+      >
         {shelves.map((row, i) => (
           <Shelf
             key={i}

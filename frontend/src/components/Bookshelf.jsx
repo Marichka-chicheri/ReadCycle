@@ -95,12 +95,14 @@ export function Shelf({ books = [], variant = 'cabinet', empty, onBookClick, chi
   );
 }
 
-// Big oak bookcase: crown on top, dark back panel, shelves, plinth.
-export function Cabinet({ title, children }) {
+// Big oak bookcase: crown on top, optional toolbar (a drawer rail with filters), dark back
+// panel with shelves, plinth.
+export function Cabinet({ title, toolbar, children }) {
   return (
     <div className="cabinet">
       <div className="cabinet__crown" aria-hidden="true" />
       {title && <div className="cabinet__plaque">{title}</div>}
+      {toolbar && <div className="cabinet__toolbar">{toolbar}</div>}
       <div className="cabinet__inner">{children}</div>
       <div className="cabinet__plinth" aria-hidden="true" />
     </div>
