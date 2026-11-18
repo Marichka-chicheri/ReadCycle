@@ -4,7 +4,7 @@ The bot token comes from the TELEGRAM_BOT_TOKEN env var (GitHub secret -> Terraf
 Without it the bot is simply switched off: the profile does not offer it and nothing is sent.
 
 Telegram calls our webhook (POST /telegram/webhook) with the header
-X-Telegram-Bot-Api-Secret-Token = webhook_secret(); scripts/deploy.sh registers the webhook
+X-Telegram-Bot-Api-Secret-Token = webhook_secret(); infra/deploy.sh registers the webhook
 with the same value, so nobody else can pretend to be Telegram.
 """
 

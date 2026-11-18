@@ -14,7 +14,7 @@ output "user_pool_client_id" {
   value = module.auth.user_pool_client_id
 }
 
-# Used by scripts/deploy.sh
+# Used by infra/deploy.sh
 output "allowed_email_domain" {
   value = var.allowed_email_domain
 }
@@ -27,7 +27,7 @@ output "cloudfront_distribution_id" {
   value = module.frontend_hosting.distribution_id
 }
 
-# Used by scripts/deploy.sh (empty when Google sign-in is off)
+# Used by infra/deploy.sh (empty when Google sign-in is off)
 output "cognito_domain" {
   value = module.auth.cognito_domain
 }

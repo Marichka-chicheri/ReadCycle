@@ -77,4 +77,4 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: eu-central-1
       - name: Deploy
-        run: bash scripts/deploy.sh
+        run: bash infra/deploy.sh
