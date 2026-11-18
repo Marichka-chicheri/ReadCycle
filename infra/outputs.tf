@@ -26,3 +26,8 @@ output "site_bucket" {
 output "cloudfront_distribution_id" {
   value = module.frontend_hosting.distribution_id
 }
+
+# Used by scripts/deploy.sh (empty when Google sign-in is off)
+output "cognito_domain" {
+  value = module.auth.cognito_domain
+}

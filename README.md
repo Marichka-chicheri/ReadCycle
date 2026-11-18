@@ -13,6 +13,7 @@ ReadCycle — вебсайт, де студенти УКУ обмінюютьс�
 - [Локальний запуск](#локальний-запуск)
 - [Деплой у новий AWS-акаунт](#деплой-у-новий-aws-акаунт)
 - [CI/CD (GitHub Actions)](#cicd-github-actions)
+- [Вхід через Google](#вхід-через-google)
 - [Змінні](#змінні)
 - [Орієнтовна вартість](#орієнтовна-вартість)
 - [Чеклист перевірки](#чеклист-перевірки)
@@ -153,6 +154,29 @@ bash scripts/deploy.sh
 
 Ці значення не секретні, тому зберігаються як variables. Доступ контролює trust policy ролі: вона дозволяє лише цей репозиторій і гілку.
 
+## Вхід через Google
+
+Кнопка «Продовжити з Google» на сторінках входу й реєстрації. Вона **вимкнена**, доки не задано `GOOGLE_CLIENT_ID`: сайт працює як раніше, без кнопки.
+
+**Як це працює.** Браузер переходить на hosted UI Cognito (`/oauth2/authorize`, code + PKCE), Cognito звертається до Google і повертає користувача на `/auth/callback`, де фронт обмінює код на токени. Далі все як зі звичайним входом: API отримує той самий ID-токен.
+
+**Лише пошта УКУ.** Pre Sign-up Lambda спрацьовує і для Google-входу: пошта не з `ucu.edu.ua` відхиляється, як і забанена. Додатково для Google:
+- Google має підтвердити пошту (`email_verified`), інакше вхід відхиляється. Без цього будь-хто міг би завести Google-акаунт на чужу адресу `@ucu.edu.ua` і захопити її профіль.
+- Якщо в студента вже є акаунт з паролем на цій пошті, Google-вхід **зв'язується** з ним (одна людина = один профіль, книги й вішліст на місці). Перший такий вхід Cognito просить повторити, фронт робить це автоматично.
+- Якщо пошта вже входить через Google, реєстрація з паролем для неї блокується з підказкою натиснути кнопку Google.
+
+**Налаштування (один раз).**
+1. [Google Cloud Console](https://console.cloud.google.com) → створіть проєкт → **APIs & Services → OAuth consent screen**: User type **External**, назва ReadCycle, scopes `openid`, `email`, `profile`. Натисніть **Publish app** (статус «In production»). Ці scopes не потребують перевірки Google. У статусі «Testing» вхід працює лише для доданих тестових користувачів (до 100).
+2. **Credentials → Create credentials → OAuth client ID → Web application**. У **Authorized redirect URIs** додайте
+   `https://readcycle-<account_id>.auth.eu-central-1.amazoncognito.com/oauth2/idpresponse`
+   (для цього акаунта: `https://readcycle-274394226432.auth.eu-central-1.amazoncognito.com/oauth2/idpresponse`). Доменне ім'я відоме наперед, тож це можна зробити до деплою. «Authorized JavaScript origins» не потрібні.
+3. У GitHub (**Settings → Secrets and variables → Actions**) додайте:
+   - Variable `GOOGLE_CLIENT_ID` = Client ID
+   - Secret `GOOGLE_CLIENT_SECRET` = Client secret
+4. Запустіть деплой (пуш у `main` або `bash scripts/deploy.sh` з `TF_VAR_google_client_id` та `TF_VAR_google_client_secret`). Terraform створить домен hosted UI, провайдера Google і оновить клієнта Cognito, `config.json` отримає `cognitoDomain`, і кнопка з'явиться.
+
+**Обмеження.** Секрет клієнта зберігається в Terraform state (як і токен Telegram-бота). Після виходу з сайту сесія Google у браузері лишається, тож повторний вхід через Google може пройти без вибору акаунта. Профіль, створений через Google, не має пароля: «Забули пароль?» для нього не працює.
+
 ## Змінні
 
 `infra/` (перевизначаються в `infra/terraform.tfvars`, шаблон — `terraform.tfvars.example`):
@@ -163,6 +187,8 @@ bash scripts/deploy.sh
 | `allowed_email_domain` | `ucu.edu.ua` | Зареєструватися можна лише з поштою цього домену |
 | `domain_name` | `""` | Власний домен (опційно); порожньо — `*.cloudfront.net` |
 | `route53_zone_id` | `""` | Зона Route 53 для `domain_name` |
+| `google_client_id` | `""` | OAuth Client ID для входу через Google; порожньо — кнопки немає (GitHub variable `GOOGLE_CLIENT_ID`) |
+| `google_client_secret` | `""` | OAuth Client secret (GitHub secret `GOOGLE_CLIENT_SECRET`) |
 | `extra_cors_origins` | `[]` | Додаткові CORS-origins (наприклад, localhost) |
 
 `infra/bootstrap/`: `region`, `github_repo` (`owner/name`), `github_branch` (`main`).

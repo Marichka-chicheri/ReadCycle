@@ -76,6 +76,11 @@ module "auth" {
   lambda_zip_hash      = data.archive_file.backend.output_base64sha256
   table_name           = module.data.table_name
   table_arn            = module.data.table_arn
+
+  account_id           = local.account_id
+  google_client_id     = var.google_client_id
+  google_client_secret = var.google_client_secret
+  callback_origins     = local.cors_origins
 }
 
 module "api" {

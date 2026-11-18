@@ -1,9 +1,13 @@
 // Thin promise wrapper around amazon-cognito-identity-js (sign up / confirm / sign in / sign out).
 import {
   AuthenticationDetails,
+  CognitoAccessToken,
+  CognitoIdToken,
+  CognitoRefreshToken,
   CognitoUser,
   CognitoUserAttribute,
   CognitoUserPool,
+  CognitoUserSession,
 } from 'amazon-cognito-identity-js';
 import { getConfig } from './config.js';
 
@@ -32,6 +36,10 @@ export function friendlyError(err) {
     return `Реєстрація можлива лише з університетською поштою @${domain}.`;
   if (msg.includes('EMAIL_BANNED'))
     return 'Акаунт з цією поштою заблоковано модератором. Якщо це помилка, напишіть адміністраторам ReadCycle.';
+  if (msg.includes('EMAIL_USES_GOOGLE'))
+    return 'Ця пошта вже входить через Google. Натисніть «Продовжити з Google».';
+  if (msg.includes('EMAIL_NOT_VERIFIED'))
+    return 'Google не підтвердив цю пошту. Скористайтеся підтвердженим акаунтом Google.';
   switch (err?.code) {
     case 'UsernameExistsException':
       return 'Користувач з цією поштою вже існує.';
@@ -99,6 +107,88 @@ export function signIn(email, password) {
       onFailure: reject,
     });
   });
+}
+
+// ---------- Sign in with Google (Cognito hosted UI, authorization code + PKCE) ----------
+// Cognito talks to Google; we only redirect there and exchange the returned code for tokens.
+// The tokens are then stored the same way amazon-cognito-identity-js stores its own sign-in,
+// so getSession / getIdToken / signOut work unchanged for both kinds of login.
+
+export const googleEnabled = () => Boolean(getConfig().cognitoDomain);
+
+const STATE_KEY = 'rc_oauth_state';
+const VERIFIER_KEY = 'rc_oauth_verifier';
+
+const redirectUri = () => `${window.location.origin}/auth/callback`;
+
+function base64url(bytes) {
+  return btoa(String.fromCharCode(...new Uint8Array(bytes)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+const randomString = (bytes) => base64url(crypto.getRandomValues(new Uint8Array(bytes)));
+
+export async function startGoogleSignIn() {
+  const { cognitoDomain, userPoolClientId } = getConfig();
+  const verifier = randomString(48);
+  const state = randomString(16);
+  sessionStorage.setItem(VERIFIER_KEY, verifier);
+  sessionStorage.setItem(STATE_KEY, state);
+  const challenge = base64url(
+    await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier)),
+  );
+  const params = new URLSearchParams({
+    response_type: 'code',
+    client_id: userPoolClientId,
+    redirect_uri: redirectUri(),
+    scope: 'openid email profile',
+    identity_provider: 'Google',
+    state,
+    code_challenge: challenge,
+    code_challenge_method: 'S256',
+  });
+  window.location.assign(`https://${cognitoDomain}/oauth2/authorize?${params}`);
+}
+
+// Called on /auth/callback with the query string Cognito redirected back with.
+export async function finishGoogleSignIn(search) {
+  const params = new URLSearchParams(search);
+  const failure = params.get('error_description') || params.get('error');
+  if (failure) throw new Error(failure);
+
+  const code = params.get('code');
+  const verifier = sessionStorage.getItem(VERIFIER_KEY);
+  if (!code || !verifier || params.get('state') !== sessionStorage.getItem(STATE_KEY))
+    throw new Error('Вхід через Google не завершено. Спробуйте ще раз.');
+  sessionStorage.removeItem(VERIFIER_KEY);
+  sessionStorage.removeItem(STATE_KEY);
+
+  const { cognitoDomain, userPoolClientId } = getConfig();
+  const res = await fetch(`https://${cognitoDomain}/oauth2/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'authorization_code',
+      client_id: userPoolClientId,
+      code,
+      redirect_uri: redirectUri(),
+      code_verifier: verifier,
+    }),
+  });
+  const tokens = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(tokens.error_description || tokens.error || 'Не вдалося увійти.');
+
+  const idToken = new CognitoIdToken({ IdToken: tokens.id_token });
+  const session = new CognitoUserSession({
+    IdToken: idToken,
+    AccessToken: new CognitoAccessToken({ AccessToken: tokens.access_token }),
+    RefreshToken: new CognitoRefreshToken({ RefreshToken: tokens.refresh_token }),
+  });
+  // Saves the tokens in localStorage under this user, which makes it the "current user".
+  new CognitoUser({ Username: idToken.payload['cognito:username'], Pool: userPool() })
+    .setSignInUserSession(session);
 }
 
 export function signOut() {

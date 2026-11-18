@@ -21,6 +21,7 @@ CLIENT_ID=$(out user_pool_client_id)
 DOMAIN=$(out allowed_email_domain)
 BUCKET=$(out site_bucket)
 DIST_ID=$(out cloudfront_distribution_id)
+COGNITO_DOMAIN=$(out cognito_domain) # empty = Google sign-in is off
 
 # Telegram bot (optional): point it at our webhook. The secret header value is derived from the
 # token the same way as in backend/src/common/telegram.py (webhook_secret).
@@ -44,7 +45,8 @@ cat > frontend/dist/config.json <<EOF
   "apiUrl": "${API_URL}",
   "userPoolId": "${POOL_ID}",
   "userPoolClientId": "${CLIENT_ID}",
-  "allowedEmailDomain": "${DOMAIN}"
+  "allowedEmailDomain": "${DOMAIN}",
+  "cognitoDomain": "${COGNITO_DOMAIN}"
 }
 EOF
 

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { confirmSignUp, friendlyError, isAllowedEmail, resendCode, signUp } from '../auth.js';
 import { getConfig } from '../config.js';
 import AuthLayout from '../components/AuthLayout.jsx';
+import GoogleButton from '../components/GoogleButton.jsx';
 
 // Two steps: sign up with email+password, then confirm with the emailed code.
 export default function Register() {
@@ -92,6 +93,7 @@ export default function Register() {
       <form onSubmit={submitSignUp} className="card">
         <span className="eyebrow">Крок 1 з 2</span>
         <h1>Реєстрація</h1>
+        <GoogleButton />
         <label>
           Пошта @{domain}
           <input

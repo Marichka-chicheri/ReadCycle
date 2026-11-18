@@ -3,6 +3,7 @@ import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { friendlyError } from '../auth.js';
 import { useAuth } from '../AuthContext.jsx';
 import AuthLayout from '../components/AuthLayout.jsx';
+import GoogleButton from '../components/GoogleButton.jsx';
 
 export default function Login() {
   const { user, signIn } = useAuth();
@@ -42,6 +43,7 @@ export default function Login() {
         {location.state?.passwordChanged && (
           <p className="ok">Пароль змінено. Увійдіть з новим паролем.</p>
         )}
+        <GoogleButton />
         <label>
           Пошта УКУ
           <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />

@@ -22,6 +22,10 @@ export function AuthProvider({ children }) {
       await auth.signIn(email, password);
       await refresh();
     },
+    finishGoogleSignIn: async (search) => {
+      await auth.finishGoogleSignIn(search);
+      await refresh();
+    },
     signOut: () => {
       auth.signOut();
       setUser(null);

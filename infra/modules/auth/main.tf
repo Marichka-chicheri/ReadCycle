@@ -39,6 +39,38 @@ resource "aws_cognito_user_pool" "main" {
   }
 }
 
+# ----- Sign in with Google (optional: off while google_client_id is empty) -----
+# Flow: SPA -> Cognito hosted UI (/oauth2/authorize, code + PKCE) -> Google -> Cognito -> SPA /auth/callback.
+# The Pre Sign-up trigger still runs for Google users, so only @allowed_email_domain gets in.
+locals {
+  google = var.google_client_id != ""
+}
+
+resource "aws_cognito_user_pool_domain" "main" {
+  count        = local.google ? 1 : 0
+  domain       = "${var.name}-${var.account_id}"
+  user_pool_id = aws_cognito_user_pool.main.id
+}
+
+resource "aws_cognito_identity_provider" "google" {
+  count         = local.google ? 1 : 0
+  user_pool_id  = aws_cognito_user_pool.main.id
+  provider_name = "Google"
+  provider_type = "Google"
+
+  provider_details = {
+    client_id        = var.google_client_id
+    client_secret    = var.google_client_secret
+    authorize_scopes = "openid email profile"
+  }
+
+  attribute_mapping = {
+    email          = "email"
+    email_verified = "email_verified"
+    username       = "sub"
+  }
+}
+
 resource "aws_cognito_user_pool_client" "web" {
   name                          = "${var.name}-web"
   user_pool_id                  = aws_cognito_user_pool.main.id
@@ -53,6 +85,15 @@ resource "aws_cognito_user_pool_client" "web" {
     access_token  = "minutes"
     refresh_token = "days"
   }
+
+  supported_identity_providers         = local.google ? ["COGNITO", "Google"] : ["COGNITO"]
+  allowed_oauth_flows_user_pool_client = local.google
+  allowed_oauth_flows                  = local.google ? ["code"] : []
+  allowed_oauth_scopes                 = local.google ? ["openid", "email", "profile"] : []
+  callback_urls                        = local.google ? [for o in var.callback_origins : "${o}/auth/callback"] : []
+  logout_urls                          = local.google ? var.callback_origins : []
+
+  depends_on = [aws_cognito_identity_provider.google]
 }
 
 # ----- Pre Sign-up Lambda -----
@@ -90,6 +131,22 @@ resource "aws_iam_role_policy" "pre_signup_banned_emails" {
   })
 }
 
+# Google users: the trigger links a Google login to an existing email/password account with the
+# same address (so a student never ends up with two profiles).
+resource "aws_iam_role_policy" "pre_signup_link_users" {
+  count = local.google ? 1 : 0
+  name  = "${var.name}-pre-signup-link-users"
+  role  = aws_iam_role.pre_signup.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["cognito-idp:ListUsers", "cognito-idp:AdminLinkProviderForUser"]
+      Resource = aws_cognito_user_pool.main.arn
+    }]
+  })
+}
+
 resource "aws_cloudwatch_log_group" "pre_signup" {
   name              = "/aws/lambda/${var.name}-pre-signup"
   retention_in_days = 14
@@ -102,12 +159,13 @@ resource "aws_lambda_function" "pre_signup" {
   handler          = "handlers.pre_signup.handler"
   filename         = var.lambda_zip
   source_code_hash = var.lambda_zip_hash
-  timeout          = 5
+  timeout          = 10
   memory_size      = 128
   environment {
     variables = {
       ALLOWED_EMAIL_DOMAIN = var.allowed_email_domain
       TABLE_NAME           = var.table_name
+      GOOGLE_SIGNIN        = local.google ? "1" : ""
     }
   }
   depends_on = [aws_cloudwatch_log_group.pre_signup]

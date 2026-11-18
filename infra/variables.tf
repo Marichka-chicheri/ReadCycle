@@ -46,3 +46,16 @@ variable "telegram_bot_token" {
   default     = ""
   sensitive   = true
 }
+
+variable "google_client_id" {
+  description = "OAuth client ID of the Google Cloud 'Web application' client. Empty = Google sign-in is off. From the GOOGLE_CLIENT_ID GitHub variable."
+  type        = string
+  default     = ""
+}
+
+variable "google_client_secret" {
+  description = "OAuth client secret for Google sign-in. From the GOOGLE_CLIENT_SECRET GitHub secret."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
