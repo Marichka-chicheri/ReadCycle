@@ -22,6 +22,19 @@ DOMAIN=$(out allowed_email_domain)
 BUCKET=$(out site_bucket)
 DIST_ID=$(out cloudfront_distribution_id)
 
+# Telegram bot (optional): point it at our webhook. The secret header value is derived from the
+# token the same way as in backend/src/common/telegram.py (webhook_secret).
+BOT_TOKEN="${TF_VAR_telegram_bot_token:-}"
+if [ -n "$BOT_TOKEN" ]; then
+  echo "==> Telegram webhook"
+  SECRET=$(printf '%s' "$BOT_TOKEN" | sha256sum | cut -c1-48)
+  curl -fsS -o /dev/null "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook" \
+    --data-urlencode "url=${API_URL%/}/telegram/webhook" \
+    --data-urlencode "secret_token=${SECRET}" \
+    --data-urlencode 'allowed_updates=["message"]' \
+    && echo "webhook set" || echo "WARNING: could not set the Telegram webhook (check the bot token)"
+fi
+
 echo "==> Build frontend"
 (cd frontend && npm ci --no-audit --no-fund && npm run build)
 rm -f frontend/dist/config.example.json

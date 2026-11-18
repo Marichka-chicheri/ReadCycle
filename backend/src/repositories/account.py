@@ -45,6 +45,8 @@ class AccountRepository:
             elif sk.startswith("BLOCK#"):  # the other side's "blocked by" mirror
                 other = sk.removeprefix("BLOCK#")
                 self._table.delete_item(Key={"pk": user_pk(other), "sk": f"BLOCKEDBY#{user_id}"})
+            elif sk == "TELEGRAM":  # the chat -> account lookup lives outside my partition
+                self._table.delete_item(Key={"pk": f"TGCHAT#{item['chat_id']}", "sk": "LINK"})
             elif sk.startswith("BLOCKEDBY#"):
                 other = sk.removeprefix("BLOCKEDBY#")
                 self._table.delete_item(Key={"pk": user_pk(other), "sk": f"BLOCK#{user_id}"})

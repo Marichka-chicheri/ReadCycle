@@ -34,6 +34,10 @@ locals {
     mod_bans         = { route_key = "GET /mod/bans", handler = "handlers.moderator.bans_handler", auth = true }
     mod_ban          = { route_key = "POST /mod/bans/{id}", handler = "handlers.moderator.ban_handler", auth = true }
     mod_unban        = { route_key = "DELETE /mod/bans/{id}", handler = "handlers.moderator.unban_handler", auth = true }
+    telegram_status  = { route_key = "GET /telegram", handler = "handlers.telegram.status_handler", auth = true }
+    telegram_link    = { route_key = "POST /telegram/link", handler = "handlers.telegram.link_handler", auth = true, rate = 2 }
+    telegram_unlink  = { route_key = "DELETE /telegram", handler = "handlers.telegram.unlink_handler", auth = true }
+    telegram_webhook = { route_key = "POST /telegram/webhook", handler = "handlers.telegram.webhook_handler", auth = false, rate = 20 }
   }
 }
 
@@ -90,4 +94,6 @@ module "api" {
 
   google_books_api_key = var.google_books_api_key
   moderator_emails     = var.moderator_emails
+  telegram_bot_token   = var.telegram_bot_token
+  site_url             = module.frontend_hosting.site_url
 }

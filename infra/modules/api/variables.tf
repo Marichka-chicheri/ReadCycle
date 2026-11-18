@@ -60,3 +60,16 @@ variable "moderator_emails" {
   type        = string
   default     = ""
 }
+
+variable "telegram_bot_token" {
+  description = "Telegram bot token (\"\" = no Telegram alerts)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "site_url" {
+  description = "Public site URL, for links in Telegram messages"
+  type        = string
+  default     = ""
+}

@@ -38,6 +38,7 @@ class OwnedCollectionApi:
         limit: int,
         not_found: str,
         limit_message: str,
+        on_create: Callable[[Any], Any] | None = None,
     ):
         self.repo_factory = repo_factory
         self.entity = entity
@@ -46,6 +47,7 @@ class OwnedCollectionApi:
         self.limit = limit
         self.not_found = not_found
         self.limit_message = limit_message
+        self.on_create = on_create  # e.g. Telegram alerts about a new book
 
     @staticmethod
     def _item_id(event) -> str:
@@ -78,6 +80,8 @@ class OwnedCollectionApi:
         if self._counted(repo, owner_id) >= self.limit:
             raise ApiError(400, "LIMIT_REACHED", self.limit_message)
         repo.save(entity)
+        if self.on_create:
+            self.on_create(entity)
         return {self.name: entity.to_json()}
 
     def update(self, event, context):

@@ -39,3 +39,10 @@ variable "moderator_emails" {
   type        = string
   default     = ""
 }
+
+variable "telegram_bot_token" {
+  description = "Token of the ReadCycle Telegram bot from @BotFather (\"\" = bot switched off). From the TELEGRAM_BOT_TOKEN GitHub secret."
+  type        = string
+  default     = ""
+  sensitive   = true
+}

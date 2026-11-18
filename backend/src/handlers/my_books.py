@@ -6,6 +6,7 @@ PUT    /my/books/{id}   — edit a book
 DELETE /my/books/{id}   — remove a book
 """
 
+from common import alerts
 from common.crud import OwnedCollectionApi
 from common.db import main_table
 from common.http import api_handler
@@ -25,6 +26,8 @@ collection = OwnedCollectionApi(
     limit=MAX_BOOKS_PER_USER,
     not_found="Книгу не знайдено",
     limit_message=f"Не більше {MAX_BOOKS_PER_USER} книг на полиці",
+    # people whose wishlist this book answers get a Telegram message
+    on_create=lambda book: alerts.notify_wishers(book),
 )
 
 list_handler = api_handler(collection.list)

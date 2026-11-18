@@ -59,6 +59,7 @@ jobs:
       TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
       TF_VAR_google_books_api_key: ${{ secrets.GOOGLE_BOOKS_API_KEY }}
       TF_VAR_moderator_emails: ${{ vars.MODERATOR_EMAILS }}
+      TF_VAR_telegram_bot_token: ${{ secrets.TELEGRAM_BOT_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

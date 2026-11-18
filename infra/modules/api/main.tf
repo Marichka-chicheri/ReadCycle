@@ -107,6 +107,8 @@ resource "aws_lambda_function" "route" {
       PHOTOS_BUCKET        = var.photos_bucket_name
       GOOGLE_BOOKS_API_KEY = var.google_books_api_key
       MODERATOR_EMAILS     = var.moderator_emails
+      TELEGRAM_BOT_TOKEN   = var.telegram_bot_token
+      SITE_URL             = var.site_url
     }
   }
   depends_on = [aws_cloudwatch_log_group.route]
